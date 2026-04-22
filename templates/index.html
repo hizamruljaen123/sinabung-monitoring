@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asetpedia | Monitoring Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0c1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        .container { max-width: 1400px; margin: auto; }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        h1 { color: #58a6ff; margin: 0; font-size: 24px; font-weight: 700; }
+        .status-badge { background: #161b22; padding: 6px 12px; border-radius: 6px; font-size: 12px; border: 1px solid #30363d; }
+
+        .top-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .summary-column { display: flex; flex-direction: column; gap: 12px; }
+        .card {
+            background: #0d1117;
+            padding: 18px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+        }
+        .card .label { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .card .value { font-size: 24px; font-weight: 700; color: #58a6ff; }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+        }
+        .chart-box { height: 220px; position: relative; }
+        .chart-title { font-size: 11px; color: #8b949e; margin-bottom: 10px; text-align: center; font-weight: 600; }
+
+        /* Scrollable Table Style */
+        .table-wrapper {
+            background: #0d1117;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            height: 450px; /* Fixed height for scrolling */
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        table { width: 100%; border-collapse: collapse; }
+        
+        /* Sticky Header */
+        thead th {
+            position: sticky;
+            top: 0;
+            background: #161b22;
+            color: #8b949e;
+            font-size: 11px;
+            text-transform: uppercase;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+            z-index: 10;
+        }
+        
+        td { padding: 10px 15px; border-bottom: 1px solid #21262d; font-size: 13px; }
+        
+        /* Sorting Highlighting */
+        .row-high-load { background: rgba(56, 189, 248, 0.05); }
+        .status-online { color: #3fb950; font-weight: 600; }
+        .status-offline { color: #f85149; font-weight: 600; opacity: 0.6; }
+        .cpu-value { font-family: 'Courier New', Courier, monospace; color: #d2a8ff; font-weight: bold; }
+        .ram-value { color: #79c0ff; }
+        
+        /* Scrollbar styling */
+        .table-wrapper::-webkit-scrollbar { width: 8px; }
+        .table-wrapper::-webkit-scrollbar-track { background: #0d1117; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+        .footer { margin-top: 20px; text-align: center; font-size: 11px; color: #484f58; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ASETPEDIA <span style="font-weight: 300; color: #8b949e;">Intelligence Monitor</span></h1>
+            <div class="status-badge" id="last-update">Syncing Dashboard...</div>
+        </header>
+
+        <div class="top-grid">
+            <div class="summary-column">
+                <div class="card">
+                    <div class="label">Total CPU Cluster</div>
+                    <div class="value" id="total-cpu">0.0%</div>
+                </div>
+                <div class="card">
+                    <div class="label">Total Memory (RAM)</div>
+                    <div class="value" id="total-ram">0.00 GB</div>
+                </div>
+                <div class="card">
+                    <div class="label">Online Services</div>
+                    <div class="value" id="active-count">0/0</div>
+                </div>
+            </div>
+            <div class="charts-container">
+                <div class="chart-box">
+                    <div class="chart-title">CPU LOAD TREND</div>
+                    <canvas id="cpuChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">MEMORY FREQUENCY</div>
+                    <canvas id="ramChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Service Entity</th>
+                        <th>Port</th>
+                        <th>PID</th>
+                        <th>Status</th>
+                        <th>CPU Usage (Sort)</th>
+                        <th>RAM (MB)</th>
+                    </tr>
+                </thead>
+                <tbody id="stats-table">
+                    <!-- Dynamic Rows Sorted by Resource -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            Auto-Sorting: Enabled (Highest Priority First) | Update Interval: 3s
+        </div>
+    </div>
+
+    <script>
+        const MAX_DATA_POINTS = 30;
+        let chartLabels = [];
+        let cpuData = [];
+        let ramData = [];
+
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { display: false },
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#484f58', font: { size: 9 } }
+                }
+            },
+            plugins: { legend: { display: false } },
+            elements: {
+                line: { tension: 0.4, borderWidth: 2 },
+                point: { radius: 0 }
+            }
+        };
+
+        const cpuChart = new Chart(document.getElementById('cpuChart'), {
+            type: 'line',
+            data: { labels: chartLabels, datasets: [{ data: cpuData, borderColor: '#58a6ff', backgroundColor: 'rgba(88, 166, 255, 0.1)', fill: true }] },
+            options: commonOptions
+        });
+
+        const ramChart = new Chart(document.getElementById('ramChart'), {
+            type: 'line',
+            data: { labels: chartLabels, datasets: [{ data: ramData, borderColor: '#d2a8ff', backgroundColor: 'rgba(210, 168, 255, 0.1)', fill: true }] },
+            options: commonOptions
+        });
+
+        async function fetchStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                document.getElementById('last-update').innerText = `Last Sync: ${data.time}`;
+                document.getElementById('total-cpu').innerText = `${data.total_cpu}%`;
+                document.getElementById('total-ram').innerText = `${data.total_ram} GB`;
+                
+                const active = data.services.filter(s => s.status === 'ONLINE').length;
+                document.getElementById('active-count').innerText = `${active}/${data.services.length}`;
+
+                // --- DYNAMIC SORTING ---
+                // Urutkan berdasarkan CPU (terbesar ke terkecil)
+                // Jika CPU sama, urutkan berdasarkan RAM
+                const sortedServices = [...data.services].sort((a, b) => {
+                    if (b.cpu !== a.cpu) return b.cpu - a.cpu;
+                    return b.ram - a.ram;
+                });
+
+                const tableBody = document.getElementById('stats-table');
+                tableBody.innerHTML = '';
+                
+                sortedServices.forEach((svc, index) => {
+                    const tr = document.createElement('tr');
+                    if (svc.status === 'OFFLINE') tr.style.opacity = '0.4';
+                    // Beri highlight untuk top 3 resource killers
+                    if (index < 3 && svc.cpu > 0) tr.className = 'row-high-load';
+
+                    tr.innerHTML = `
+                        <td>${svc.name}</td>
+                        <td><code style="color: #8b949e">${svc.port}</code></td>
+                        <td>${svc.pid}</td>
+                        <td><span class="${svc.status === 'ONLINE' ? 'status-online' : 'status-offline'}">${svc.status}</span></td>
+                        <td class="cpu-value">${svc.cpu}%</td>
+                        <td class="ram-value">${svc.ram} MB</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+
+                chartLabels.push(data.time);
+                cpuData.push(data.total_cpu);
+                ramData.push(data.total_ram);
+
+                if (chartLabels.length > MAX_DATA_POINTS) {
+                    chartLabels.shift(); cpuData.shift(); ramData.shift();
+                }
+
+                cpuChart.update('none');
+                ramChart.update('none');
+
+            } catch (error) {
+                console.error('Monitoring Sync Error:', error);
+            }
+        }
+
+        setInterval(fetchStats, 3000);
+        fetchStats();
+    </script>
+</body>
+</html>
