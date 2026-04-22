@@ -109,13 +109,13 @@ BE_PORTS = {
     8200: "Correlation Engine"
 }
 
-DEV_ESSENTIAL_PORTS = [5006, 8092, 8200, 8097, 8098, 8093, 8094, 5173]
+DEV_ESSENTIAL_PORTS = [5006, 8092, 8200, 8097, 8098, 8093, 8094, 5151]
 
 if DEV_MODE:
     BE_PORTS = {k: v for k, v in BE_PORTS.items() if k in DEV_ESSENTIAL_PORTS}
 
 FE_PORTS = {
-    5173: "Vite SolidJS FE"
+    5151: "Vite SolidJS FE"
 }
 
 PROCESS_CACHE = {}
