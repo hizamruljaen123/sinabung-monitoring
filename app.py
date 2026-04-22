@@ -1,19 +1,73 @@
 import os
+import time
+import requests
 from flask import Flask, render_template, jsonify
 import psutil
 from datetime import datetime
+import mysql.connector
+
 try:
     from dotenv import load_dotenv
-    # Look for .env in the parent be directory
-    env_path = os.path.join(os.path.dirname(__file__), '..', 'be', '.env')
-    load_dotenv(env_path)
+    # Look for .env in the parent mahameru-terminal-be directory as a fallback
+    parent_env_path = os.path.join(os.path.dirname(__file__), '..', 'mahameru-terminal-be', '.env')
+    load_dotenv(parent_env_path)
+    
+    # Load local .env (this will override parent .env if same keys exist)
+    local_env_path = os.path.join(os.path.dirname(__file__), '.env')
+    load_dotenv(local_env_path, override=True)
 except ImportError:
     pass
 
 DEV_MODE = os.getenv("DEV_MODE", "True").lower() == "true"
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
+RAM_ALERT_THRESHOLD = int(os.getenv("RAM_ALERT_THRESHOLD", "1500")) # Threshold in MB
+
 app = Flask(__name__)
 
-# Config Ports
+SERVICE_PORTS_MAPPING = {
+    "news_service.py": [5101, 5102, 5103, 5104, 5105],
+    "backup_service.py": [5004],
+    "sentiment_service.py": [5008],
+    "entity_service.py": [5005],
+    "ta_service.py": [5007],
+    "deep_ta_service.py": [5200],
+    "sky_service.py": [5002],
+    "ais_service.py": [8080],
+    "geo_data_service.py": [8091],
+    "submarine_cable_service.py": [8120],
+    "satellite_visual_service.py": [8130],
+    "crypto_service.py": [8085],
+    "forex_service.py": [8086],
+    "commodity_service.py": [8087],
+    "market_service.py": [8088],
+    "oil_refinery_service.py": [8089],
+    "disaster_service.py": [8095],
+    "tv_service.py": [5003],
+    "infrastructure_service.py": [8097],
+    "port_service.py": [8098],
+    "mines_service.py": [8082],
+    "power_plant_service.py": [8093],
+    "oil_trade_service.py": [8090],
+    "gnews_service.py": [5006],
+    "vessel_intelligence_service.py": [8100],
+    "industrial_zone_service.py": [8094],
+    "datacenter_service.py": [8110],
+    "rail_station_service.py": [8111],
+    "conflict_service.py": [8140],
+    "government_facility_service.py": [8150],
+    "military_service.py": [8160],
+    "crypto_stream_service.py": [8092],
+    "dashboard_service.py": [8000]
+}
+
+# Reverse mapping: Port -> Log file name
+PORT_TO_LOG = {}
+for py_file, ports in SERVICE_PORTS_MAPPING.items():
+    log_name = py_file.replace('.py', '.log')
+    for p in ports:
+        PORT_TO_LOG[p] = log_name
+
 BE_PORTS = {
     5101: "News Node 1 (Core)",
     5102: "News Node 2 (Intel)",
@@ -46,27 +100,48 @@ BE_PORTS = {
     5003: "TV Stream Svc",
     5006: "GNews Crawler",
     8092: "Crypto Streamer",
+    8100: "Vessel Intelligence",
+    8110: "Datacenter",
+    8111: "Rail Station",
+    8140: "Conflict Svc",
+    8150: "Gov Facility Svc",
+    8160: "Military Svc",
     8200: "Correlation Engine"
 }
 
-# Essential Services for DEV_MODE
 DEV_ESSENTIAL_PORTS = [5006, 8092, 8200, 8097, 8098, 8093, 8094, 5173]
 
 if DEV_MODE:
-    # Filter only essential ports in Dev Mode
     BE_PORTS = {k: v for k, v in BE_PORTS.items() if k in DEV_ESSENTIAL_PORTS}
 
 FE_PORTS = {
     5173: "Vite SolidJS FE"
 }
 
-# Process Cache to allow cpu_percent to work correctly
 PROCESS_CACHE = {}
+ALERT_COOLDOWN = {}
 
-def get_process_info(port):
+def check_and_alert(port, name, ram):
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    if ram > RAM_ALERT_THRESHOLD:
+        now = time.time()
+        # Cooldown 15 minutes per port
+        if port not in ALERT_COOLDOWN or now - ALERT_COOLDOWN[port] > 900:
+            msg = f"🚨 *SINABUNG MONITORING ALERT* 🚨\n\n*Service:* `{name}`\n*Port:* `{port}`\n*Status:* ⚠️ *High RAM Usage*\n*RAM:* `{ram} MB` (Threshold: {RAM_ALERT_THRESHOLD} MB)"
+            try:
+                requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
+                    "chat_id": TELEGRAM_CHAT_ID,
+                    "text": msg,
+                    "parse_mode": "Markdown"
+                }, timeout=5)
+            except Exception as e:
+                print(f"Telegram alert failed: {e}")
+            ALERT_COOLDOWN[port] = now
+
+def get_process_info(port, name):
     global PROCESS_CACHE
     try:
-        # Try to find the process for this port
         target_conn = None
         for conn in psutil.net_connections(kind='inet'):
             if conn.laddr.port == port and conn.status == 'LISTEN':
@@ -74,36 +149,98 @@ def get_process_info(port):
                 break
         
         if not target_conn:
-            # Port is not listening
             if port in PROCESS_CACHE: del PROCESS_CACHE[port]
             return {"cpu": 0, "ram": 0, "pid": "-", "status": "OFFLINE"}
 
         pid = target_conn.pid
         
-        # Get or create process object
         if port not in PROCESS_CACHE or PROCESS_CACHE[port].pid != pid:
             try:
                 PROCESS_CACHE[port] = psutil.Process(pid)
-                # First call to cpu_percent() initializes it
                 PROCESS_CACHE[port].cpu_percent()
             except:
                 return {"cpu": 0, "ram": 0, "pid": "-", "status": "OFFLINE"}
         
         proc = PROCESS_CACHE[port]
         with proc.oneshot():
-            # Second call (on subsequent API hit) will return real value
             cpu = proc.cpu_percent()
             ram = proc.memory_info().rss / (1024 * 1024)
-            return {"cpu": round(cpu, 1), "ram": round(ram, 1), "pid": pid, "status": "ONLINE"}
+            ram = round(ram, 1)
+            
+            # Check for telegram alert
+            check_and_alert(port, name, ram)
+            
+            return {"cpu": round(cpu, 1), "ram": ram, "pid": pid, "status": "ONLINE"}
             
     except Exception as e:
         if port in PROCESS_CACHE: del PROCESS_CACHE[port]
         pass
     return {"cpu": 0, "ram": 0, "pid": "-", "status": "OFFLINE"}
 
+LOGS_DIR = os.path.join(os.path.dirname(__file__), '..', 'mahameru-terminal-be', 'logs')
+
+def get_error_counts(port):
+    log_file_name = PORT_TO_LOG.get(port)
+    if not log_file_name: return 0
+    log_path = os.path.join(LOGS_DIR, log_file_name)
+    if not os.path.exists(log_path): return 0
+    
+    error_count = 0
+    try:
+        with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            seek_pos = max(0, size - 500000) # last 500KB
+            f.seek(seek_pos)
+            content = f.read()
+            error_count = content.count('ERROR')
+    except Exception:
+        pass
+    return error_count
+
+def get_db_connection():
+    try:
+        conn = mysql.connector.connect(
+            host=os.getenv("DB_HOST", "127.0.0.1"),
+            user=os.getenv("DB_USER", "root"),
+            password=os.getenv("DB_PASSWORD", ""),
+            database=os.getenv("DB_NAME", "asetpedia"),
+            port=int(os.getenv("DB_PORT", "3306"))
+        )
+        return conn
+    except Exception as e:
+        print(f"DB Error: {e}")
+        return None
+
+IMPORTANT_TABLES = [
+    "article", "ais_history", "global_conflicts", "global_trade_alerts", 
+    "government_facilities", "military_facilities", "power_plants", 
+    "oil_refineries", "datacenter_hub", "mines_data", "offshore_platforms",
+    "petroleum_terminals", "oil_trades"
+]
+
+def get_table_counts():
+    conn = get_db_connection()
+    counts = {}
+    if conn:
+        cursor = conn.cursor()
+        for table in IMPORTANT_TABLES:
+            try:
+                cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                result = cursor.fetchone()
+                counts[table] = result[0] if result else 0
+            except:
+                counts[table] = -1
+        cursor.close()
+        conn.close()
+    else:
+        for table in IMPORTANT_TABLES:
+            counts[table] = -1
+    return counts
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', DEV_MODE=DEV_MODE)
 
 @app.route('/api/stats')
 def stats():
@@ -111,30 +248,33 @@ def stats():
     total_cpu = 0
     total_ram = 0
     
-    # Combined ports
     combined = {**BE_PORTS, **FE_PORTS}
     
     for port, name in sorted(combined.items()):
-        info = get_process_info(port)
+        info = get_process_info(port, name)
+        error_count = get_error_counts(port)
         all_stats.append({
             "name": name,
             "port": port,
             "pid": info['pid'],
             "status": info['status'],
             "cpu": info['cpu'],
-            "ram": info['ram']
+            "ram": info['ram'],
+            "errors": error_count
         })
         total_cpu += info['cpu']
         total_ram += info['ram']
         
+    db_counts = get_table_counts()
+    
     return jsonify({
         "services": all_stats,
         "total_cpu": round(total_cpu, 1),
         "total_ram": round(total_ram / 1024, 2),
+        "db_counts": db_counts,
         "time": datetime.now().strftime("%H:%M:%S"),
         "dev_mode": DEV_MODE
     })
 
 if __name__ == '__main__':
-    # Run on port 9000 for monitoring
-    app.run(port=9000, debug=True)
+    app.run(host="0.0.0.0", port=9000, debug=True)
