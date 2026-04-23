@@ -581,33 +581,47 @@
             }
         }
 
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function renderSubRow(idx, row, idCol, idVal) {
             const container = document.getElementById(`sub-content-${idx}`);
             
             const fieldsHtml = currentDbSchema.map(col => {
-                const val = row[col.Field] === null ? '' : String(row[col.Field]);
+                const rawVal = row[col.Field] === null ? '' : String(row[col.Field]);
                 const isPK = col.Key === 'PRI' && col.Extra === 'auto_increment';
-                const isLong = val.length > 100;
-                const displayVal = isLong ? val.substring(0, 100) + '...' : val;
+                const isLong = rawVal.length > 100;
+                const displayVal = isLong ? rawVal.substring(0, 100) + '...' : rawVal;
                 
+                // Detection for image URLs to handle "missing image" request
+                const isImageUrl = (typeof rawVal === 'string') && (rawVal.match(/\.(jpeg|jpg|gif|png|webp)$/i) || rawVal.startsWith('http') && col.Field.toLowerCase().includes('image'));
+
                 return `
                     <div class="grid grid-cols-[180px_1fr] gap-6 items-start py-4 px-8 border-b border-slate-100 dark:border-white/5 hover:bg-slate-100/50 dark:hover:bg-white/[0.02] transition-colors">
                         <div class="flex flex-col sticky top-0">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${col.Field}</span>
                             <span class="text-[8px] font-mono text-slate-300 dark:text-slate-600 mt-1">${col.Type} ${isPK ? '(PRIMARY)' : ''}</span>
+                            ${isImageUrl ? `
+                                <div class="mt-3 w-16 h-16 rounded-lg bg-slate-100 dark:bg-white/5 overflow-hidden border border-slate-200 dark:border-white/10 flex items-center justify-center">
+                                    <img src="${rawVal}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\'text-[8px] text-slate-400\'>NO IMAGE</span>'">
+                                </div>
+                            ` : ''}
                         </div>
                         <div class="relative w-full group/field">
                             <div 
                                 id="field-${idx}-${col.Field}"
                                 data-field="${col.Field}"
-                                data-full-value="${val.replace(/"/g, '&quot;')}"
-                                data-original="${val.replace(/"/g, '&quot;')}"
+                                data-full-value="${escapeHtml(rawVal)}"
+                                data-original="${escapeHtml(rawVal)}"
                                 data-is-expanded="false"
                                 contenteditable="${isPK ? 'false' : 'true'}"
                                 ondblclick="expandToTextArea(this)"
                                 class="sub-field-text text-xs font-mono text-slate-700 dark:text-slate-300 outline-none min-h-[1.5rem] leading-relaxed break-words whitespace-pre-wrap ${isPK ? 'opacity-50 cursor-not-allowed' : 'p-2 hover:bg-primary/5 rounded-lg focus:bg-primary/10 transition-all'}"
-                                style="word-break: break-word; overflow-wrap: break-word; max-width: 100%;"
-                            >${displayVal}</div>
+                                style="word-break: break-word; overflow-wrap: break-word; max-width: 100%; max-height: 200px; overflow-y: auto;"
+                            >${escapeHtml(displayVal)}</div>
                             ${isLong ? '<span class="absolute right-2 bottom-1 text-[8px] font-bold text-primary/40 uppercase tracking-tighter pointer-events-none group-hover/field:opacity-100 opacity-0 transition-opacity">Double click to expand</span>' : ''}
                         </div>
                     </div>`;
@@ -619,7 +633,7 @@
                         <div class="flex items-center gap-4">
                             <span class="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tighter">DATA_NODE: <span class="text-primary font-mono select-all">${idVal}</span></span>
                             <div class="h-4 w-[1px] bg-slate-200 dark:bg-white/10"></div>
-                            <span class="text-[9px] text-slate-400 font-medium">Character limited view. Double-click long text for full editor.</span>
+                            <span class="text-[9px] text-slate-400 font-medium">Safe HTML view. Multi-line scroll enabled.</span>
                         </div>
                         <div class="flex gap-2">
                             <button onclick="saveInlineEdit('${idCol}', '${idVal}', ${idx})" class="px-5 py-2 bg-primary text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95">
@@ -643,24 +657,20 @@
             const fieldName = el.getAttribute('data-field');
             const originalVal = el.getAttribute('data-original');
             
-            // Create a textarea for the "text box" experience
             const textarea = document.createElement('textarea');
             textarea.className = 'w-full bg-primary/5 text-xs font-mono text-slate-700 dark:text-slate-300 p-3 rounded-xl border border-primary/30 outline-none focus:border-primary transition-all min-h-[150px] custom-scrollbar';
             textarea.value = fullVal;
             textarea.setAttribute('data-field', fieldName);
             textarea.setAttribute('data-original', originalVal);
-            textarea.setAttribute('data-full-value', fullVal); // Keep for consistency
+            textarea.setAttribute('data-full-value', fullVal);
             
-            // Auto-resize
             textarea.style.height = 'auto';
             textarea.style.height = (textarea.scrollHeight + 10) + 'px';
             
-            // Replace the div with the textarea
             el.parentElement.innerHTML = '';
             el.parentElement.appendChild(textarea);
             textarea.focus();
             
-            // Track expansion
             textarea.setAttribute('data-is-expanded', 'true');
         }
 
