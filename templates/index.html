@@ -428,8 +428,18 @@
                 const resp = await fetch(`/api/db/schema/${currentDbTable}`);
                 currentDbSchema = await resp.json();
                 
-                const visibleCols = currentDbSchema.length > 6 ? currentDbSchema.slice(0, 6) : currentDbSchema;
-                const hasMore = currentDbSchema.length > 6;
+                let visibleCols;
+                let hasMore = true;
+
+                if (currentDbTable === 'article') {
+                    const priority = ['tanggal', 'judul', 'sumber'];
+                    visibleCols = currentDbSchema.filter(col => priority.includes(col.Field.toLowerCase()));
+                    visibleCols.sort((a, b) => priority.indexOf(a.Field.toLowerCase()) - priority.indexOf(b.Field.toLowerCase()));
+                    if (visibleCols.length === 0) visibleCols = currentDbSchema.slice(0, 3);
+                } else {
+                    visibleCols = currentDbSchema.length > 6 ? currentDbSchema.slice(0, 6) : currentDbSchema;
+                    hasMore = currentDbSchema.length > 6;
+                }
 
                 const headerRow = document.getElementById('db-table-header');
                 headerRow.innerHTML = 
@@ -449,8 +459,20 @@
                 const data = await resp.json();
                 
                 const idCol = currentDbSchema.find(s => s.Key === 'PRI')?.Field || currentDbSchema[0].Field;
-                const visibleCols = currentDbSchema.length > 6 ? currentDbSchema.slice(0, 6) : currentDbSchema;
-                const hasMore = currentDbSchema.length > 6;
+                
+                let visibleCols;
+                let hasMore = true;
+
+                if (currentDbTable === 'article') {
+                    const priority = ['tanggal', 'judul', 'sumber'];
+                    visibleCols = currentDbSchema.filter(col => priority.includes(col.Field.toLowerCase()));
+                    visibleCols.sort((a, b) => priority.indexOf(a.Field.toLowerCase()) - priority.indexOf(b.Field.toLowerCase()));
+                    if (visibleCols.length === 0) visibleCols = currentDbSchema.slice(0, 3);
+                } else {
+                    visibleCols = currentDbSchema.length > 6 ? currentDbSchema.slice(0, 6) : currentDbSchema;
+                    hasMore = currentDbSchema.length > 6;
+                }
+                
                 const totalCols = visibleCols.length + (hasMore ? 2 : 1);
 
                 const tbody = document.getElementById('db-table-body');
