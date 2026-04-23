@@ -553,6 +553,8 @@
             const fieldsHtml = currentDbSchema.map(col => {
                 const val = row[col.Field] === null ? '' : String(row[col.Field]);
                 const isPK = col.Key === 'PRI' && col.Extra === 'auto_increment';
+                const isLong = val.length > 100;
+                const displayVal = isLong ? val.substring(0, 100) + '...' : val;
                 
                 return `
                     <div class="grid grid-cols-[180px_1fr] gap-6 items-start py-4 px-8 border-b border-slate-100 dark:border-white/5 hover:bg-slate-100/50 dark:hover:bg-white/[0.02] transition-colors">
@@ -560,13 +562,20 @@
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${col.Field}</span>
                             <span class="text-[8px] font-mono text-slate-300 dark:text-slate-600 mt-1">${col.Type} ${isPK ? '(PRIMARY)' : ''}</span>
                         </div>
-                        <div 
-                            data-field="${col.Field}"
-                            data-original="${val.replace(/"/g, '&quot;')}"
-                            contenteditable="${isPK ? 'false' : 'true'}"
-                            class="sub-field-text text-xs font-mono text-slate-700 dark:text-slate-300 outline-none min-h-[1.5rem] leading-relaxed break-words whitespace-pre-wrap ${isPK ? 'opacity-50 cursor-not-allowed' : 'p-2 hover:bg-primary/5 rounded-lg focus:bg-primary/10 transition-colors'}"
-                            style="word-break: break-word; overflow-wrap: break-word; max-width: 100%;"
-                        >${val}</div>
+                        <div class="relative w-full group/field">
+                            <div 
+                                id="field-${idx}-${col.Field}"
+                                data-field="${col.Field}"
+                                data-full-value="${val.replace(/"/g, '&quot;')}"
+                                data-original="${val.replace(/"/g, '&quot;')}"
+                                data-is-expanded="false"
+                                contenteditable="${isPK ? 'false' : 'true'}"
+                                ondblclick="expandToTextArea(this)"
+                                class="sub-field-text text-xs font-mono text-slate-700 dark:text-slate-300 outline-none min-h-[1.5rem] leading-relaxed break-words whitespace-pre-wrap ${isPK ? 'opacity-50 cursor-not-allowed' : 'p-2 hover:bg-primary/5 rounded-lg focus:bg-primary/10 transition-all'}"
+                                style="word-break: break-word; overflow-wrap: break-word; max-width: 100%;"
+                            >${displayVal}</div>
+                            ${isLong ? '<span class="absolute right-2 bottom-1 text-[8px] font-bold text-primary/40 uppercase tracking-tighter pointer-events-none group-hover/field:opacity-100 opacity-0 transition-opacity">Double click to expand</span>' : ''}
+                        </div>
                     </div>`;
             }).join('');
 
@@ -576,7 +585,7 @@
                         <div class="flex items-center gap-4">
                             <span class="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tighter">DATA_NODE: <span class="text-primary font-mono select-all">${idVal}</span></span>
                             <div class="h-4 w-[1px] bg-slate-200 dark:bg-white/10"></div>
-                            <span class="text-[9px] text-slate-400 font-medium">Full record access with real-time word-wrap.</span>
+                            <span class="text-[9px] text-slate-400 font-medium">Character limited view. Double-click long text for full editor.</span>
                         </div>
                         <div class="flex gap-2">
                             <button onclick="saveInlineEdit('${idCol}', '${idVal}', ${idx})" class="px-5 py-2 bg-primary text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95">
@@ -593,17 +602,58 @@
                 </div>`;
         }
 
+        function expandToTextArea(el) {
+            if (el.getAttribute('data-is-expanded') === 'true' || el.contentEditable === 'false') return;
+            
+            const fullVal = el.getAttribute('data-full-value');
+            const fieldName = el.getAttribute('data-field');
+            const originalVal = el.getAttribute('data-original');
+            
+            // Create a textarea for the "text box" experience
+            const textarea = document.createElement('textarea');
+            textarea.className = 'w-full bg-primary/5 text-xs font-mono text-slate-700 dark:text-slate-300 p-3 rounded-xl border border-primary/30 outline-none focus:border-primary transition-all min-h-[150px] custom-scrollbar';
+            textarea.value = fullVal;
+            textarea.setAttribute('data-field', fieldName);
+            textarea.setAttribute('data-original', originalVal);
+            textarea.setAttribute('data-full-value', fullVal); // Keep for consistency
+            
+            // Auto-resize
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight + 10) + 'px';
+            
+            // Replace the div with the textarea
+            el.parentElement.innerHTML = '';
+            el.parentElement.appendChild(textarea);
+            textarea.focus();
+            
+            // Track expansion
+            textarea.setAttribute('data-is-expanded', 'true');
+        }
+
         async function saveInlineEdit(idCol, idVal, idx) {
             const container = document.getElementById(`sub-content-${idx}`);
+            // Check both contenteditable divs and textareas
             const fields = container.querySelectorAll('[data-field]');
             const payload = {};
             
             fields.forEach(el => {
                 const field = el.getAttribute('data-field');
                 const original = el.getAttribute('data-original');
-                const current = el.innerText.trim();
-                if (current !== original && el.contentEditable !== 'false') {
-                    payload[field] = current === '' ? null : current;
+                const current = el.tagName === 'TEXTAREA' ? el.value : el.innerText.trim();
+                
+                // If it's a truncated div that wasn't expanded, we use the data-full-value to check changes
+                const fullValue = el.getAttribute('data-full-value');
+                
+                if (el.tagName !== 'TEXTAREA' && el.getAttribute('data-is-expanded') === 'false') {
+                    // Not expanded, so the displayed text is truncated. 
+                    // No changes are possible unless expanded, but we check anyway.
+                    if (current !== fullValue.substring(0, 100) + '...' && current !== fullValue) {
+                         payload[field] = current;
+                    }
+                } else {
+                    if (current !== original) {
+                        payload[field] = current === '' ? null : current;
+                    }
                 }
             });
 
