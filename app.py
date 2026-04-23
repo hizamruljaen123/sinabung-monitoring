@@ -407,6 +407,15 @@ def git_stash():
     except subprocess.CalledProcessError as e:
         return jsonify({"status": "error", "output": e.stderr}), 500
 
+@app.route('/api/pm2-reload/<int:app_id>', methods=['POST'])
+def pm2_reload(app_id):
+    try:
+        # npx pm2 reload <id>
+        result = subprocess.run(['npx', 'pm2', 'reload', str(app_id)], capture_output=True, text=True, check=True)
+        return jsonify({"status": "success", "output": result.stdout})
+    except subprocess.CalledProcessError as e:
+        return jsonify({"status": "error", "output": e.stderr}), 500
+
 @app.route('/api/logs/<int:app_id>')
 def stream_logs(app_id):
     def generate():

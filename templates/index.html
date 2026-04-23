@@ -206,6 +206,20 @@
                         </div>
 
                         <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Process Management</h3>
+                            <div class="flex flex-col gap-3">
+                                <button onclick="pm2Reload(0)" class="flex items-center justify-between w-full px-4 py-3 bg-emerald-500/10 text-emerald-500 rounded-xl font-bold text-xs border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition group">
+                                    <span>RELOAD BE (ID: 0)</span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:rotate-180 transition-transform duration-500"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                </button>
+                                <button onclick="pm2Reload(1)" class="flex items-center justify-between w-full px-4 py-3 bg-blue-500/10 text-blue-500 rounded-xl font-bold text-xs border border-blue-500/20 hover:bg-blue-500 hover:text-white transition group">
+                                    <span>RELOAD FE (ID: 1)</span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:rotate-180 transition-transform duration-500"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
                             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Log Streaming</h3>
                             <div class="flex flex-col gap-2">
                                 <button id="btn-log-0" onclick="startLogStream(0)" class="log-tab active px-4 py-3 rounded-xl border border-primary bg-primary/5 text-primary text-xs font-bold text-left flex items-center justify-between group">
@@ -884,6 +898,22 @@
                 terminal.innerHTML += `<div class="${colorClass} mt-2 bg-white/5 p-3 rounded-lg border border-white/5">${data.output}</div>`;
             } catch (err) {
                 terminal.innerHTML += `<div class="text-accent mt-2">FATAL: Execution failed. System unreachable.</div>`;
+            }
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        async function pm2Reload(appId) {
+            const terminal = document.getElementById('terminal-content');
+            terminal.innerHTML += `\n\n<span class="text-blue-400 font-bold">>>> EXECUTING PM2 RELOAD [ID: ${appId}]...</span>\n`;
+            terminal.scrollTop = terminal.scrollHeight;
+
+            try {
+                const resp = await fetch(`/api/pm2-reload/${appId}`, { method: 'POST' });
+                const data = await resp.json();
+                
+                const colorClass = data.status === 'success' ? 'text-emerald-400' : 'text-rose-400';
+                terminal.innerHTML += `<div class="${colorClass} mt-2 bg-white/5 p-3 rounded-lg border border-white/5 font-mono text-[10px] whitespace-pre-wrap">${data.output}</div>`;
+            } catch (err) {
+                terminal.innerHTML += `<div class="text-rose-500 mt-2 italic">FATAL: Reload command failed to reach the core.</div>`;
             }
             terminal.scrollTop = terminal.scrollHeight;
         }
