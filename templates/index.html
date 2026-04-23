@@ -451,7 +451,7 @@
                 const idCol = currentDbSchema.find(s => s.Key === 'PRI')?.Field || currentDbSchema[0].Field;
                 const visibleCols = currentDbSchema.length > 6 ? currentDbSchema.slice(0, 6) : currentDbSchema;
                 const hasMore = currentDbSchema.length > 6;
-                const totalCols = visibleCols.length + (hasMore ? 2 : 1); // expand chevron + visible + actions
+                const totalCols = visibleCols.length + (hasMore ? 2 : 1);
 
                 const tbody = document.getElementById('db-table-body');
                 tbody.innerHTML = '';
@@ -461,7 +461,6 @@
                     const rowId = `row-${idx}`;
                     const subId = `sub-${idx}`;
 
-                    // --- Main Row ---
                     const tr = document.createElement('tr');
                     tr.className = 'group hover:bg-slate-50 dark:hover:bg-white/[0.015] transition-colors cursor-pointer border-b border-slate-50 dark:border-white/[0.02]';
                     tr.setAttribute('data-row-id', rowId);
@@ -477,14 +476,15 @@
                     
                     visibleCols.forEach(col => {
                         let val = row[col.Field];
-                        let display = val === null ? '<span class="opacity-25 italic">null</span>' 
-                            : (typeof val === 'string' && val.length > 40 ? val.substring(0, 37) + '…' : String(val));
-                        mainHtml += `<td class="px-5 py-3.5 font-mono text-[11px] text-slate-600 dark:text-slate-400 whitespace-nowrap">${display}</td>`;
+                        // Stricter character limit for main table view
+                        let display = val === null ? '<span class="opacity-25 italic text-[10px]">null</span>' 
+                            : (typeof val === 'string' && val.length > 25 ? val.substring(0, 22) + '...' : String(val));
+                        mainHtml += `<td class="px-5 py-3.5 font-mono text-[11px] text-slate-600 dark:text-slate-400 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">${display}</td>`;
                     });
 
                     mainHtml += `<td class="px-5 py-3.5 text-right">
                         <div class="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="event.stopPropagation(); expandRow(${idx}, ${JSON.stringify(JSON.stringify(row))}, '${idCol}', '${idVal}')" class="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition text-[10px] font-bold px-3">EDIT</button>
+                            <button onclick="event.stopPropagation(); expandRow(${idx}, ${JSON.stringify(JSON.stringify(row))}, '${idCol}', '${idVal}')" class="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition text-[10px] font-bold px-3 uppercase">Manage</button>
                             <button onclick="event.stopPropagation(); deleteRecord('${idCol}', '${idVal}')" class="p-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent hover:text-white transition">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                             </button>
@@ -492,17 +492,14 @@
                     </td>`;
 
                     tr.innerHTML = mainHtml;
-                    if (hasMore) {
-                        tr.addEventListener('click', () => toggleSubRow(idx, row, idCol, idVal));
-                    }
+                    tr.addEventListener('click', () => toggleSubRow(idx, row, idCol, idVal));
                     tbody.appendChild(tr);
 
-                    // --- Sub Row (hidden by default) ---
                     const subTr = document.createElement('tr');
                     subTr.id = subId;
-                    subTr.className = 'hidden bg-slate-50/80 dark:bg-white/[0.02]';
+                    subTr.className = 'hidden bg-slate-50/50 dark:bg-white/[0.01]';
                     subTr.innerHTML = `<td colspan="${totalCols}" class="px-0 py-0">
-                        <div id="sub-content-${idx}" class="px-6 py-4"></div>
+                        <div id="sub-content-${idx}" class="p-0 border-l-4 border-primary/20"></div>
                     </td>`;
                     tbody.appendChild(subTr);
                 });
@@ -519,7 +516,6 @@
             }
         }
 
-        // Track which sub-rows are open
         const openSubRows = new Set();
 
         function toggleSubRow(idx, row, idCol, idVal) {
@@ -529,12 +525,12 @@
 
             if (isOpen) {
                 subTr.classList.add('hidden');
-                chevron.style.transform = '';
+                if (chevron) chevron.style.transform = '';
                 openSubRows.delete(idx);
             } else {
                 renderSubRow(idx, row, idCol, idVal);
                 subTr.classList.remove('hidden');
-                chevron.style.transform = 'rotate(90deg)';
+                if (chevron) chevron.style.transform = 'rotate(90deg)';
                 openSubRows.add(idx);
             }
         }
@@ -553,47 +549,45 @@
 
         function renderSubRow(idx, row, idCol, idVal) {
             const container = document.getElementById(`sub-content-${idx}`);
-            const isDark = document.documentElement.classList.contains('dark');
-
+            
             const fieldsHtml = currentDbSchema.map(col => {
                 const val = row[col.Field] === null ? '' : String(row[col.Field]);
                 const isPK = col.Key === 'PRI' && col.Extra === 'auto_increment';
+                
                 return `
-                    <div class="flex flex-col gap-1 min-w-[160px] max-w-[240px]">
-                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">${col.Field}
-                            ${isPK ? '<span class="text-primary opacity-60 ml-1">PK</span>' : ''}
-                        </label>
+                    <div class="grid grid-cols-[200px_1fr] gap-4 items-start py-3 px-8 border-b border-slate-100 dark:border-white/5 hover:bg-slate-100/50 dark:hover:bg-white/[0.02] transition-colors">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${col.Field}</span>
+                            <span class="text-[8px] font-mono text-slate-300 dark:text-slate-600">${col.Type} ${isPK ? '(PRIMARY KEY)' : ''}</span>
+                        </div>
                         <div 
                             data-field="${col.Field}"
                             data-original="${val.replace(/"/g, '&quot;')}"
                             contenteditable="${isPK ? 'false' : 'true'}"
-                            ondblclick="this.focus()"
-                            class="sub-field px-3 py-2 text-[11px] font-mono rounded-lg border border-transparent ${isPK ? 'opacity-50 cursor-not-allowed' : 'cursor-text hover:border-primary/30 focus:border-primary focus:bg-primary/5'} bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300 outline-none transition min-h-[32px] break-all"
-                            style="white-space: pre-wrap;"
+                            class="sub-field-text text-xs font-mono text-slate-700 dark:text-slate-300 outline-none min-h-[1.5rem] break-all leading-relaxed ${isPK ? 'opacity-50 cursor-not-allowed' : 'p-1 hover:bg-primary/5 rounded focus:bg-primary/10 transition-colors'}"
                         >${val}</div>
                     </div>`;
             }).join('');
 
             container.innerHTML = `
-                <div class="border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden bg-white dark:bg-[#0A0D14] shadow-sm">
-                    <div class="px-5 py-3 bg-slate-50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            Full Record — ${idCol}: <span class="text-primary">${idVal}</span>
-                            <span class="ml-3 opacity-60 normal-case font-normal italic">Double-click any field to edit</span>
-                        </span>
+                <div class="flex flex-col bg-white dark:bg-[#05070A]">
+                    <div class="px-8 py-4 bg-slate-50 dark:bg-white/[0.03] flex justify-between items-center border-b border-slate-200 dark:border-white/10 sticky top-0 z-20">
+                        <div class="flex items-center gap-4">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-tighter">IDENTIFIER: <span class="text-primary font-mono">${idVal}</span></span>
+                            <div class="h-4 w-[1px] bg-slate-200 dark:bg-white/10"></div>
+                            <span class="text-[9px] text-slate-400 italic">Double-click to edit values directly.</span>
+                        </div>
                         <div class="flex gap-2">
-                            <button onclick="saveInlineEdit('${idCol}', '${idVal}', ${idx})" class="flex items-center gap-1.5 px-4 py-1.5 bg-primary text-white rounded-lg text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition shadow shadow-primary/20">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                                Save
+                            <button onclick="saveInlineEdit('${idCol}', '${idVal}', ${idx})" class="px-5 py-1.5 bg-primary text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:shadow-lg hover:shadow-primary/20 transition-all">
+                                Update Data
                             </button>
-                            <button onclick="deleteRecord('${idCol}', '${idVal}')" class="flex items-center gap-1.5 px-4 py-1.5 bg-accent/10 text-accent rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-accent hover:text-white transition">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
-                                Delete
+                            <button onclick="toggleSubRow(${idx})" class="px-5 py-1.5 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200 transition">
+                                Close
                             </button>
                         </div>
                     </div>
-                    <div class="overflow-x-auto custom-scrollbar">
-                        <div class="flex gap-4 p-5 w-max">${fieldsHtml}</div>
+                    <div class="flex flex-col max-h-[500px] overflow-y-auto custom-scrollbar">
+                        ${fieldsHtml}
                     </div>
                 </div>`;
         }
