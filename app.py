@@ -410,9 +410,9 @@ def git_stash():
 @app.route('/api/logs/<int:app_id>')
 def stream_logs(app_id):
     def generate():
-        # Using npx pm2 logs [id] --lines 50 --no-colors
+        # Correct PM2 flag for no-colors is --raw
         process = subprocess.Popen(
-            ['npx', 'pm2', 'logs', str(app_id), '--lines', '50', '--no-colors'],
+            ['npx', 'pm2', 'logs', str(app_id), '--lines', '100', '--raw'],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -420,7 +420,8 @@ def stream_logs(app_id):
         )
         try:
             for line in iter(process.stdout.readline, ''):
-                yield f"data: {line}\n\n"
+                if line:
+                    yield f"data: {line}\n\n"
         finally:
             process.terminate()
             process.wait()
