@@ -1,6 +1,7 @@
 import os
 import time
 import requests
+import threading
 from flask import Flask, render_template, jsonify
 import psutil
 from datetime import datetime
@@ -22,6 +23,7 @@ DEV_MODE = os.getenv("DEV_MODE", "True").lower() == "true"
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 RAM_ALERT_THRESHOLD = int(os.getenv("RAM_ALERT_THRESHOLD", "1500")) # Threshold in MB
+CPU_COUNT = psutil.cpu_count() or 1
 
 app = Flask(__name__)
 
@@ -106,8 +108,7 @@ BE_PORTS = {
     8140: "Conflict Svc",
     8150: "Gov Facility Svc",
     8160: "Military Svc",
-    8200: "Correlation Engine"
-}
+    }
 
 DEV_ESSENTIAL_PORTS = [5006, 8092, 8200, 8097, 8098, 8093, 8094, 5151]
 
@@ -163,7 +164,9 @@ def get_process_info(port, name):
         
         proc = PROCESS_CACHE[port]
         with proc.oneshot():
-            cpu = proc.cpu_percent()
+            # psutil.Process.cpu_percent() can exceed 100% on multi-core systems.
+            # Normalizing by CPU_COUNT gives the usage relative to total system capacity.
+            cpu = proc.cpu_percent() / CPU_COUNT
             ram = proc.memory_info().rss / (1024 * 1024)
             ram = round(ram, 1)
             
@@ -238,6 +241,90 @@ def get_table_counts():
             counts[table] = -1
     return counts
 
+def generate_detailed_summary():
+    """Generates a neat, monospace summary of the system status."""
+    combined = {**BE_PORTS, **FE_PORTS}
+    services_list = []
+    online_count = 0
+    
+    for port, name in sorted(combined.items()):
+        info = get_process_info(port, name)
+        is_online = info['status'] == "ONLINE"
+        if is_online: online_count += 1
+        
+        services_list.append({
+            "name": name,
+            "port": port,
+            "status": "ON" if is_online else "OFF",
+            "cpu": info['cpu'],
+            "ram": info['ram']
+        })
+    
+    sys_cpu = psutil.cpu_percent()
+    sys_ram = psutil.virtual_memory()
+    ram_used = sys_ram.used / (1024**3)
+    ram_total = sys_ram.total / (1024**3)
+    
+    # Format the report
+    separator = "-" * 36 + "\n"
+    txt = "🌋 SINABUNG MONITORING SYSTEM\n"
+    txt += f"Sync Time : {datetime.now().strftime('%H:%M:%S')}\n"
+    txt += separator
+    txt += f"CPU Load  : {sys_cpu:>5.1f}%\n"
+    txt += f"Memory    : {ram_used:>4.2f}/{ram_total:>4.1f} GB ({sys_ram.percent}%)\n"
+    txt += f"Services  : {online_count}/{len(services_list)} ONLINE\n"
+    txt += separator
+    txt += f"{'SERVICE NAME':<20} {'PRT':<5} {'ST':<3} {'CPU':<5}\n"
+    txt += separator
+    
+    for s in services_list:
+        # Show only online services or all? Let's show all but mark them
+        txt += f"{s['name'][:20]:<20} {s['port']:<5} {s['status']:<3} {s['cpu']:>4.1f}%\n"
+    
+    txt += separator
+    return txt
+
+def run_telegram_bot():
+    """Background task to poll for Telegram commands."""
+    if not TELEGRAM_BOT_TOKEN:
+        print("[!] No Telegram Token found. Bot listener disabled.")
+        return
+    
+    last_id = 0
+    # Try to sync with the latest message to avoid spamming on start
+    try:
+        r = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?limit=1&offset=-1", timeout=5)
+        if r.status_code == 200:
+            res = r.json().get("result", [])
+            if res: last_id = res[0]["update_id"]
+    except: pass
+
+    print(f"[*] Sinabung Bot initialized. Listening for commands...")
+    
+    while True:
+        try:
+            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?offset={last_id+1}&timeout=20"
+            resp = requests.get(url, timeout=25)
+            if resp.status_code == 200:
+                updates = resp.json().get("result", [])
+                for upd in updates:
+                    last_id = upd["update_id"]
+                    msg = upd.get("message", {})
+                    text = msg.get("text", "")
+                    chat_id = msg.get("chat", {}).get("id")
+                    
+                    if text == "/getUpdate":
+                        print(f"[*] Received /getUpdate from chat {chat_id}")
+                        summary = generate_detailed_summary()
+                        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
+                            "chat_id": chat_id,
+                            "text": f"<pre>{summary}</pre>",
+                            "parse_mode": "HTML"
+                        })
+        except Exception as e:
+            print(f"Telegram Bot Error: {e}")
+        time.sleep(1)
+
 @app.route('/')
 def index():
     return render_template('index.html', DEV_MODE=DEV_MODE)
@@ -245,9 +332,6 @@ def index():
 @app.route('/api/stats')
 def stats():
     all_stats = []
-    total_cpu = 0
-    total_ram = 0
-    
     combined = {**BE_PORTS, **FE_PORTS}
     
     for port, name in sorted(combined.items()):
@@ -262,19 +346,28 @@ def stats():
             "ram": info['ram'],
             "errors": error_count
         })
-        total_cpu += info['cpu']
-        total_ram += info['ram']
         
     db_counts = get_table_counts()
     
+    # Use system-wide metrics for a more accurate "Global" view
+    system_cpu = psutil.cpu_percent()
+    system_ram = psutil.virtual_memory()
+    
     return jsonify({
         "services": all_stats,
-        "total_cpu": round(total_cpu, 1),
-        "total_ram": round(total_ram / 1024, 2),
+        "total_cpu": round(system_cpu, 1),
+        "total_ram": round(system_ram.used / (1024**3), 2),
+        "total_ram_capacity": round(system_ram.total / (1024**3), 1),
+        "ram_percent": system_ram.percent,
         "db_counts": db_counts,
         "time": datetime.now().strftime("%H:%M:%S"),
         "dev_mode": DEV_MODE
     })
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=9000, debug=True)
+    # Start the modular Telegram Bot in a background thread
+    bot_thread = threading.Thread(target=run_telegram_bot, daemon=True)
+    bot_thread.start()
+    
+    # use_reloader=False is used to prevent starting the bot thread twice in debug mode
+    app.run(host="0.0.0.0", port=9000, debug=True, use_reloader=False)

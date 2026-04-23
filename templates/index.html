@@ -190,7 +190,7 @@
         const ramChart = new Chart(document.getElementById('ramChart'), {
             type: 'line',
             data: { labels: chartLabels, datasets: [{ 
-                label: 'RAM (GB)', data: ramData, 
+                label: 'RAM (%)', data: ramData, 
                 borderColor: '#818CF8', 
                 backgroundColor: 'rgba(129, 140, 248, 0.15)', 
                 fill: true 
@@ -235,7 +235,10 @@
                         <div class="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-white/10 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-colors duration-300">
                             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-purple-400 opacity-80"></div>
                             <div class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1 mt-1">Total RAM</div>
-                            <div class="text-2xl font-bold text-slate-800 dark:text-white font-outfit">${data.total_ram} <span class="text-sm">GB</span></div>
+                            <div class="text-2xl font-bold text-slate-800 dark:text-white font-outfit">
+                                ${data.total_ram}<span class="text-xs text-slate-400">/${data.total_ram_capacity}</span> <span class="text-sm">GB</span>
+                            </div>
+                            <div class="text-[10px] font-bold text-secondary mt-0.5">${data.ram_percent}% Used</div>
                         </div>
                         <div class="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-white/10 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-colors duration-300">
                             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500 opacity-80"></div>
@@ -309,7 +312,7 @@
                 // Update Charts
                 chartLabels.push(data.time);
                 cpuData.push(data.total_cpu);
-                ramData.push(data.total_ram);
+                ramData.push(data.ram_percent);
 
                 if (chartLabels.length > MAX_DATA_POINTS) {
                     chartLabels.shift(); cpuData.shift(); ramData.shift();
