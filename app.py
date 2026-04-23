@@ -349,14 +349,17 @@ def run_telegram_bot():
                     if "@" in cmd:
                         cmd = cmd.split("@")[0]
                     
-                    # Detect if bot is tagged/mentioned anywhere in the text
+                    # Detect chat type
+                    is_group = msg.get("chat", {}).get("type", "") in ["group", "supergroup"]
+                    
+                    # Detect if bot is tagged/mentioned
                     is_mentioned = f"@{bot_username.lower()}" in text.lower()
                     is_only_tag = text.strip().lower() == f"@{bot_username.lower()}"
 
-                    # ONLY PROCESS IF TAGGED (as requested by user)
-                    if not is_mentioned:
+                    # Process if it's a command (starts with /) or if it's a private chat
+                    # If in a group, only process if tagged
+                    if is_group and not is_mentioned and not text.startswith("/"):
                         continue
-
 
                     # Handle /get_id command
                     if cmd == "/get_id":
@@ -367,7 +370,7 @@ def run_telegram_bot():
                             "parse_mode": "Markdown"
                         })
 
-                    elif cmd in ["/get_update", "/getupdate"] or is_only_tag:
+                    elif cmd in ["/update", "/status", "/get_update", "/getupdate"] or is_only_tag:
                         print(f"[*] Received status request from chat {chat_id}")
                         summary = generate_detailed_summary()
                         requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
