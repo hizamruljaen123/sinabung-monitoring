@@ -423,41 +423,41 @@
             await loadTableData();
         }
 
+        function getVisibleColumns() {
+            let visibleCols;
+            let hasMore = true;
+
+            if (currentDbTable === 'article') {
+                const priority = ['tanggal', 'judul', 'sumber'];
+                visibleCols = currentDbSchema.filter(col => priority.includes(col.Field.toLowerCase()));
+                visibleCols.sort((a, b) => priority.indexOf(a.Field.toLowerCase()) - priority.indexOf(b.Field.toLowerCase()));
+                if (visibleCols.length === 0) visibleCols = currentDbSchema.slice(0, 3);
+            } else {
+                visibleCols = currentDbSchema.length > 6 ? currentDbSchema.slice(0, 6) : currentDbSchema;
+                hasMore = currentDbSchema.length > 6;
+            }
+            return { visibleCols, hasMore };
+        }
+
         async function loadTableSchema() {
             try {
                 const resp = await fetch(`/api/db/schema/${currentDbTable}`);
                 currentDbSchema = await resp.json();
                 
-                let visibleCols;
-                let hasMore = true;
-                const isArticle = currentDbTable === 'article';
-
-                if (isArticle) {
-                    const priority = ['tanggal', 'judul', 'sumber'];
-                    visibleCols = currentDbSchema.filter(col => priority.includes(col.Field.toLowerCase()));
-                    visibleCols.sort((a, b) => priority.indexOf(a.Field.toLowerCase()) - priority.indexOf(b.Field.toLowerCase()));
-                    if (visibleCols.length === 0) visibleCols = currentDbSchema.slice(0, 3);
-                } else {
-                    visibleCols = currentDbSchema.length > 6 ? currentDbSchema.slice(0, 6) : currentDbSchema;
-                    hasMore = currentDbSchema.length > 6;
-                }
+                const { visibleCols, hasMore } = getVisibleColumns();
 
                 const table = document.getElementById('db-data-table');
-                if (isArticle) {
-                    table.style.width = '100%';
-                    table.style.minWidth = 'unset';
-                } else {
-                    table.style.width = 'max-content';
-                    table.style.minWidth = '900px';
-                }
+                table.style.width = '100%';
+                table.style.minWidth = 'unset';
 
                 const headerRow = document.getElementById('db-table-header');
                 headerRow.innerHTML = 
-                    (hasMore ? `<th class="w-8 px-3 py-4"></th>` : '') +
+                    (hasMore ? `<th class="w-8 px-3 py-4 text-center">
+                        <div class="w-4 h-4 rounded-full bg-primary/10 border border-primary/20 mx-auto"></div>
+                    </th>` : '') +
                     visibleCols.map(col =>
                         `<th class="px-5 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold whitespace-nowrap">${col.Field}</th>`
-                    ).join('') +
-                    (isArticle ? '' : `<th class="px-5 py-4 text-right text-[10px] uppercase font-bold text-slate-400 whitespace-nowrap">Actions</th>`);
+                    ).join(''); 
             } catch (err) {
                 console.error("Schema Load Error:", err);
             }
@@ -469,34 +469,18 @@
                 const data = await resp.json();
                 
                 const idCol = currentDbSchema.find(s => s.Key === 'PRI')?.Field || currentDbSchema[0].Field;
-                const isArticle = currentDbTable === 'article';
-                
-                let visibleCols;
-                let hasMore = true;
-
-                if (isArticle) {
-                    const priority = ['tanggal', 'judul', 'sumber'];
-                    visibleCols = currentDbSchema.filter(col => priority.includes(col.Field.toLowerCase()));
-                    visibleCols.sort((a, b) => priority.indexOf(a.Field.toLowerCase()) - priority.indexOf(b.Field.toLowerCase()));
-                    if (visibleCols.length === 0) visibleCols = currentDbSchema.slice(0, 3);
-                } else {
-                    visibleCols = currentDbSchema.length > 6 ? currentDbSchema.slice(0, 6) : currentDbSchema;
-                    hasMore = currentDbSchema.length > 6;
-                }
-                
-                const totalCols = visibleCols.length + (hasMore ? (isArticle ? 1 : 2) : (isArticle ? 0 : 1));
+                const { visibleCols, hasMore } = getVisibleColumns();
+                const totalCols = visibleCols.length + (hasMore ? 1 : 0);
 
                 const tbody = document.getElementById('db-table-body');
                 tbody.innerHTML = '';
 
                 data.data.forEach((row, idx) => {
                     const idVal = row[idCol];
-                    const rowId = `row-${idx}`;
                     const subId = `sub-${idx}`;
 
                     const tr = document.createElement('tr');
                     tr.className = 'group hover:bg-slate-50 dark:hover:bg-white/[0.015] transition-colors cursor-pointer border-b border-slate-50 dark:border-white/[0.02]';
-                    tr.setAttribute('data-row-id', rowId);
                     
                     let mainHtml = '';
                     if (hasMore) {
@@ -508,25 +492,14 @@
                     }
                     
                     visibleCols.forEach(col => {
-                        let val = row[col.Field];
-                        let display = val === null ? '<span class="opacity-25 italic text-[10px]">null</span>' 
+                        const val = row[col.Field];
+                        const display = val === null ? '<span class="opacity-25 italic text-[10px]">null</span>' 
                             : (typeof val === 'string' && val.length > 25 ? val.substring(0, 22) + '...' : String(val));
                         mainHtml += `<td class="px-5 py-3.5 font-mono text-[11px] text-slate-600 dark:text-slate-400 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">${display}</td>`;
                     });
 
-                    if (!isArticle) {
-                        mainHtml += `<td class="px-5 py-3.5 text-right">
-                            <div class="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onclick="event.stopPropagation(); expandRow(${idx}, ${JSON.stringify(JSON.stringify(row))}, '${idCol}', '${idVal}')" class="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition text-[10px] font-bold px-3 uppercase">Manage</button>
-                                <button onclick="event.stopPropagation(); deleteRecord('${idCol}', '${idVal}')" class="p-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent hover:text-white transition">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                </button>
-                            </div>
-                        </td>`;
-                    }
-
                     tr.innerHTML = mainHtml;
-                    tr.addEventListener('click', () => toggleSubRow(idx, row, idCol, idVal));
+                    tr.onclick = () => toggleSubRow(idx, row, idCol, idVal);
                     tbody.appendChild(tr);
 
                     const subTr = document.createElement('tr');
@@ -638,6 +611,9 @@
                         <div class="flex gap-2">
                             <button onclick="saveInlineEdit('${idCol}', '${idVal}', ${idx})" class="px-5 py-2 bg-primary text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95">
                                 Save Changes
+                            </button>
+                            <button onclick="deleteRecord('${idCol}', '${idVal}')" class="px-5 py-2 bg-accent/10 text-accent rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-accent hover:text-white transition active:scale-95">
+                                Delete Record
                             </button>
                             <button onclick="toggleSubRow(${idx})" class="px-5 py-2 bg-slate-200/50 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-300 transition">
                                 Close
