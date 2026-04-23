@@ -14,14 +14,19 @@
     <nav class="flex-grow px-4 space-y-1.5 mt-2">
         <div class="px-4 pb-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Main Overview</div>
         
-        <a href="#" class="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl transition-all duration-300 font-semibold text-sm group">
+        <a href="#" onclick="showPage('dashboard')" id="nav-dashboard" class="nav-item flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl transition-all duration-300 font-semibold text-sm group">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="group-hover:scale-110 transition-transform"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             Command Center
         </a>
         
-        <a href="#" class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white rounded-xl transition-all duration-300 text-sm group">
+        <a href="#" onclick="showPage('services')" id="nav-services" class="nav-item flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white rounded-xl transition-all duration-300 text-sm group">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="group-hover:scale-110 transition-transform"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             Service Registry
+        </a>
+
+        <a href="#" onclick="showPage('control')" id="nav-control" class="nav-item flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white rounded-xl transition-all duration-300 text-sm group">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="group-hover:scale-110 transition-transform"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="4" y1="12" x2="1" y2="12"/><line x1="23" y1="12" x2="20" y2="12"/></svg>
+            Server Control
         </a>
 
         <div class="px-4 pt-6 pb-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Infrastructure</div>

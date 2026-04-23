@@ -388,6 +388,45 @@ def run_telegram_bot():
 def index():
     return render_template('index.html', DEV_MODE=DEV_MODE)
 
+import subprocess
+import signal
+
+@app.route('/api/git-pull', methods=['POST'])
+def git_pull():
+    try:
+        result = subprocess.run(['git', 'pull'], capture_output=True, text=True, check=True)
+        return jsonify({"status": "success", "output": result.stdout})
+    except subprocess.CalledProcessError as e:
+        return jsonify({"status": "error", "output": e.stderr}), 500
+
+@app.route('/api/git-stash', methods=['POST'])
+def git_stash():
+    try:
+        result = subprocess.run(['git', 'stash'], capture_output=True, text=True, check=True)
+        return jsonify({"status": "success", "output": result.stdout})
+    except subprocess.CalledProcessError as e:
+        return jsonify({"status": "error", "output": e.stderr}), 500
+
+@app.route('/api/logs/<int:app_id>')
+def stream_logs(app_id):
+    def generate():
+        # Using npx pm2 logs [id] --lines 50 --no-colors
+        process = subprocess.Popen(
+            ['npx', 'pm2', 'logs', str(app_id), '--lines', '50', '--no-colors'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1
+        )
+        try:
+            for line in iter(process.stdout.readline, ''):
+                yield f"data: {line}\n\n"
+        finally:
+            process.terminate()
+            process.wait()
+
+    return app.response_class(generate(), mimetype='text/event-stream')
+
 @app.route('/api/stats')
 def stats():
     all_stats = []
