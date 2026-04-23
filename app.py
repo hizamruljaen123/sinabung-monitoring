@@ -367,14 +367,16 @@ def run_telegram_bot():
                             "parse_mode": "Markdown"
                         })
 
-                    elif cmd == "/getupdate" or is_only_tag:
-                        print(f"[*] Received /getUpdate or tag from chat {chat_id}")
+                    elif cmd in ["/get_update", "/getupdate"] or is_only_tag:
+                        print(f"[*] Received status request from chat {chat_id}")
                         summary = generate_detailed_summary()
                         requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
                             "chat_id": chat_id,
                             "text": f"👋 *REPORT FOR @{bot_username.upper()}*\n<pre>{summary}</pre>",
                             "parse_mode": "HTML"
                         })
+
+
 
 
 
