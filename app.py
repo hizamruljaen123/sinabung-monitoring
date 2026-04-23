@@ -300,16 +300,24 @@ def run_telegram_bot():
         print("[!] No Telegram Token found. Bot listener disabled.")
         return
     
+    # Get Bot Username for mention detection
+    bot_username = "bot"
     last_id = 0
-    # Try to sync with the latest message to avoid spamming on start
     try:
-        r = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?limit=1&offset=-1", timeout=5)
-        if r.status_code == 200:
-            res = r.json().get("result", [])
+        r_me = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getMe", timeout=5)
+        if r_me.status_code == 200:
+            bot_username = r_me.json().get("result", {}).get("username", "bot")
+            
+        # Try to sync with the latest message to avoid spamming on start
+        r_upd = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?limit=1&offset=-1", timeout=5)
+        if r_upd.status_code == 200:
+            res = r_upd.json().get("result", [])
             if res: last_id = res[0]["update_id"]
     except: pass
 
-    print(f"[*] Sinabung Bot initialized. Listening for commands...")
+    print(f"[*] Sinabung Bot (@{bot_username}) initialized. Listening for commands...")
+
+
     
     while True:
         try:
@@ -340,6 +348,15 @@ def run_telegram_bot():
                     cmd = text.split()[0].lower() if text else ""
                     if "@" in cmd:
                         cmd = cmd.split("@")[0]
+                    
+                    # Detect if bot is tagged/mentioned anywhere in the text
+                    is_mentioned = f"@{bot_username.lower()}" in text.lower()
+                    is_only_tag = text.strip().lower() == f"@{bot_username.lower()}"
+
+                    # ONLY PROCESS IF TAGGED (as requested by user)
+                    if not is_mentioned:
+                        continue
+
 
                     # Handle /get_id command
                     if cmd == "/get_id":
@@ -350,14 +367,15 @@ def run_telegram_bot():
                             "parse_mode": "Markdown"
                         })
 
-                    elif cmd == "/getupdate":
-                        print(f"[*] Received /getUpdate from chat {chat_id}")
+                    elif cmd == "/getupdate" or is_only_tag:
+                        print(f"[*] Received /getUpdate or tag from chat {chat_id}")
                         summary = generate_detailed_summary()
                         requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
                             "chat_id": chat_id,
-                            "text": f"<pre>{summary}</pre>",
+                            "text": f"👋 *REPORT FOR @{bot_username.upper()}*\n<pre>{summary}</pre>",
                             "parse_mode": "HTML"
                         })
+
 
 
         except Exception as e:
