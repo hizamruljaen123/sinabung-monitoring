@@ -368,7 +368,7 @@ def run_telegram_bot():
                             "chat_id": chat_id,
                             "text": f"👋 *SYSTEM_REPORT*\n<pre>{summary}</pre>",
                             "parse_mode": "HTML"
-                        })                       })
+                        })                       
 
 
 
