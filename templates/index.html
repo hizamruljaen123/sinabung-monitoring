@@ -350,46 +350,37 @@
                 const healthRatio = (active / total) * 100;
                 
                 document.getElementById('metrics-container').innerHTML = `
-                    <div class="grid grid-cols-1 gap-5">
-                        <div class="stat-card glass-panel p-6 group">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover:scale-110">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                                </div>
-                                <span class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg uppercase">Real-time</span>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="stat-card p-5 group">
+                            <div class="flex justify-between items-center mb-3">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CPU UTILIZATION</p>
+                                <span class="text-[9px] font-bold text-primary bg-primary/5 border border-primary/10 px-1.5 py-0.5 rounded">REAL-TIME</span>
                             </div>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total CPU Utilization</p>
-                            <div class="flex items-end gap-2">
-                                <h3 class="text-3xl font-bold font-outfit text-slate-800 dark:text-white">${data.total_cpu}%</h3>
-                                <span class="text-xs text-success font-bold mb-1 flex items-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="mr-0.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg> Stable</span>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-2xl font-bold font-mono text-slate-800 dark:text-white">${data.total_cpu}%</h3>
+                                <div class="w-1.5 h-1.5 rounded-full bg-success"></div>
                             </div>
                         </div>
 
-                        <div class="stat-card glass-panel p-6 group">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="w-12 h-12 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary transition-transform group-hover:scale-110">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                                </div>
-                                <span class="text-[10px] font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-lg uppercase">${data.ram_percent}% Capacity</span>
+                        <div class="stat-card p-5 group">
+                            <div class="flex justify-between items-center mb-3">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">MEMORY ALLOCATION</p>
+                                <span class="text-[9px] font-bold text-secondary bg-secondary/5 border border-secondary/10 px-1.5 py-0.5 rounded">${data.ram_percent}%</span>
                             </div>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Global Memory Pool</p>
-                            <div class="flex items-end gap-2">
-                                <h3 class="text-3xl font-bold font-outfit text-slate-800 dark:text-white">${data.total_ram}</h3>
-                                <span class="text-xs text-slate-400 font-medium mb-1.5 uppercase">GB / ${data.total_ram_capacity} GB</span>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-2xl font-bold font-mono text-slate-800 dark:text-white">${data.total_ram}</h3>
+                                <span class="text-[10px] text-slate-400 font-bold tracking-tighter uppercase">GB / ${data.total_ram_capacity} GB</span>
                             </div>
                         </div>
 
-                        <div class="stat-card glass-panel p-6 group">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="w-12 h-12 rounded-2xl bg-success/10 flex items-center justify-center text-success transition-transform group-hover:scale-110">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                </div>
-                                <span class="text-[10px] font-bold text-success bg-success/10 px-2 py-1 rounded-lg uppercase">System Healthy</span>
+                        <div class="stat-card p-5 group">
+                            <div class="flex justify-between items-center mb-3">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ACTIVE CLUSTER NODES</p>
+                                <span class="text-[9px] font-bold text-success bg-success/5 border border-success/10 px-1.5 py-0.5 rounded">OPTIMAL</span>
                             </div>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Active Clusters</p>
-                            <div class="flex items-end gap-2">
-                                <h3 class="text-3xl font-bold font-outfit text-slate-800 dark:text-white">${active}</h3>
-                                <span class="text-xs text-slate-400 font-medium mb-1.5 uppercase">Nodes / ${total} Available</span>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-2xl font-bold font-mono text-slate-800 dark:text-white">${active}</h3>
+                                <span class="text-[10px] text-slate-400 font-bold tracking-tighter uppercase">NODES / ${total} ONLINE</span>
                             </div>
                         </div>
                     </div>
@@ -400,12 +391,12 @@
                 for (const [table, count] of Object.entries(data.db_counts)) {
                     const formattedCount = count === -1 ? 'OFFLINE' : count.toLocaleString();
                     dbHtml += `
-                        <div class="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-all group cursor-default border border-transparent hover:border-slate-200 dark:hover:border-white/10">
-                            <div class="flex items-center gap-3">
-                                <div class="w-2 h-2 rounded-full ${count === -1 ? 'bg-accent' : 'bg-primary/40 group-hover:bg-primary'} transition-colors"></div>
-                                <span class="text-sm font-medium text-slate-600 dark:text-slate-300 capitalize">${table.replace(/_/g, ' ')}</span>
+                        <div class="flex items-center justify-between px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-all group cursor-default border-b border-slate-50 dark:border-white/[0.02] last:border-0">
+                            <div class="flex items-center gap-2">
+                                <div class="w-1 h-1 rounded-full ${count === -1 ? 'bg-accent' : 'bg-primary/30'}"></div>
+                                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">${table.replace(/_/g, ' ')}</span>
                             </div>
-                            <span class="font-mono text-sm font-bold text-slate-800 dark:text-slate-100">${formattedCount}</span>
+                            <span class="font-mono text-[11px] font-bold text-slate-700 dark:text-slate-200">${formattedCount}</span>
                         </div>
                     `;
                 }

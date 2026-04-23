@@ -1,21 +1,16 @@
-<div class="glass-panel rounded-[2rem] p-7 shadow-xl flex-grow animate-slide-up" style="animation-delay: 0.2s">
-    <div class="flex items-center justify-between mb-6">
+<div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm flex-grow animate-fade-in">
+    <div class="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-white/5 pb-4">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 15v4a2 2 0 0 0 2 2h14v-4"/><path d="M3 7v8"/></svg>
-            </div>
-            <div>
-                <h2 class="text-lg font-outfit font-bold text-slate-800 dark:text-white tracking-tight">Data Integrity</h2>
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Active Table Volumes</p>
-            </div>
+            <div class="w-1 h-4 bg-primary rounded-full"></div>
+            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">Data Integrity</h2>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-success"></span>
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Connected</span>
+        <div class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-success/5 border border-success/10">
+            <div class="w-1 h-1 rounded-full bg-success"></div>
+            <span class="text-[9px] font-bold text-success uppercase tracking-widest">Active</span>
         </div>
     </div>
     
-    <div class="grid grid-cols-1 gap-2.5 max-h-[320px] overflow-y-auto pr-3 custom-scrollbar" id="db-stats-container">
+    <div class="grid grid-cols-1 gap-1 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar" id="db-stats-container">
         <!-- DB Stats injected here -->
     </div>
 </div>
