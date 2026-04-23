@@ -356,9 +356,12 @@ def run_telegram_bot():
                     is_mentioned = f"@{bot_username.lower()}" in text.lower()
                     is_only_tag = text.strip().lower() == f"@{bot_username.lower()}"
 
-                    # Process if it's a command (starts with /) or if it's a private chat
-                    # If in a group, only process if tagged
-                    if is_group and not is_mentioned and not text.startswith("/"):
+                    # Process if it's a command (starts with /) OR if the bot is tagged
+                    # This allows the bot to work in ANY group (regular or supergroup)
+                    # if the user addresses it directly.
+                    should_process = text.startswith("/") or is_mentioned or is_only_tag or not is_group
+                    
+                    if not should_process:
                         continue
 
                     # Handle /get_id command
