@@ -285,11 +285,11 @@ def generate_detailed_summary():
         txt += f"{name:<20}: {val:>14}\n"
     
     txt += separator
-    txt += f"{'SERVICE NAME':<20} {'PRT':<5} {'ST':<3} {'CPU':<5}\n"
+    txt += f"{'SERVICE NAME':<15} {'PRT':<5} {'ST':<3} {'CPU':<5} {'RAM':<6}\n"
     txt += separator
     
     for s in services_list:
-        txt += f"{s['name'][:20]:<20} {s['port']:<5} {s['status']:<3} {s['cpu']:>4.1f}%\n"
+        txt += f"{s['name'][:15]:<15} {s['port']:<5} {s['status']:<3} {s['cpu']:>4.1f}% {s['ram']:>5.0f}M\n"
     
     txt += separator
     return txt
