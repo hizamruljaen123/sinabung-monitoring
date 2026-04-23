@@ -428,12 +428,16 @@
                 const resp = await fetch(`/api/db/schema/${currentDbTable}`);
                 currentDbSchema = await resp.json();
                 
+                const visibleCols = currentDbSchema.length > 6 ? currentDbSchema.slice(0, 6) : currentDbSchema;
+                const hasMore = currentDbSchema.length > 6;
+
                 const headerRow = document.getElementById('db-table-header');
-                const isDark = document.documentElement.classList.contains('dark');
-                const thBg = isDark ? '#0A0D14' : '#FFFFFF';
-                headerRow.innerHTML = currentDbSchema.map(col =>
-                    `<th class="px-6 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold whitespace-nowrap" style="position:sticky;top:0;background:${thBg};">${col.Field}</th>`
-                ).join('') + `<th class="px-6 py-4 text-right text-[10px] uppercase font-bold text-slate-400 whitespace-nowrap" style="position:sticky;top:0;right:0;background:${thBg};z-index:30;box-shadow:-4px 0 8px rgba(0,0,0,0.06);">Actions</th>`;
+                headerRow.innerHTML = 
+                    (hasMore ? `<th class="w-8 px-3 py-4"></th>` : '') +
+                    visibleCols.map(col =>
+                        `<th class="px-5 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold whitespace-nowrap">${col.Field}</th>`
+                    ).join('') +
+                    `<th class="px-5 py-4 text-right text-[10px] uppercase font-bold text-slate-400 whitespace-nowrap">Actions</th>`;
             } catch (err) {
                 console.error("Schema Load Error:", err);
             }
@@ -444,33 +448,65 @@
                 const resp = await fetch(`/api/db/data/${currentDbTable}?page=${currentDbPage}&per_page=15`);
                 const data = await resp.json();
                 
+                const idCol = currentDbSchema.find(s => s.Key === 'PRI')?.Field || currentDbSchema[0].Field;
+                const visibleCols = currentDbSchema.length > 6 ? currentDbSchema.slice(0, 6) : currentDbSchema;
+                const hasMore = currentDbSchema.length > 6;
+                const totalCols = visibleCols.length + (hasMore ? 2 : 1); // expand chevron + visible + actions
+
                 const tbody = document.getElementById('db-table-body');
-                tbody.innerHTML = data.data.map(row => {
-                    const idCol = currentDbSchema.find(s => s.Key === 'PRI')?.Field || currentDbSchema[0].Field;
+                tbody.innerHTML = '';
+
+                data.data.forEach((row, idx) => {
                     const idVal = row[idCol];
+                    const rowId = `row-${idx}`;
+                    const subId = `sub-${idx}`;
+
+                    // --- Main Row ---
+                    const tr = document.createElement('tr');
+                    tr.className = 'group hover:bg-slate-50 dark:hover:bg-white/[0.015] transition-colors cursor-pointer border-b border-slate-50 dark:border-white/[0.02]';
+                    tr.setAttribute('data-row-id', rowId);
                     
-                    return `
-                        <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">
-                            ${currentDbSchema.map(col => {
-                                let val = row[col.Field];
-                                if (val === null) val = '<span class="opacity-30">NULL</span>';
-                                else if (typeof val === 'string' && val.length > 50) val = val.substring(0, 47) + '...';
-                                return `<td class="px-6 py-4 font-mono text-[11px] text-slate-600 dark:text-slate-400 whitespace-nowrap">${val}</td>`;
-                            }).join('')}
-                            <td style="position: sticky; right: 0; z-index: 10; background: inherit; box-shadow: -4px 0 8px rgba(0,0,0,0.05);" class="px-6 py-4 text-right bg-white dark:bg-[#0A0D14]">
-                                <div class="flex justify-end gap-2">
-                                    <button onclick='openEditModal(${JSON.stringify(row).replace(/'/g, "&apos;")})' class="p-1.5 rounded bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-primary transition">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                    </button>
-                                    <button onclick="deleteRecord('${idCol}', '${idVal}')" class="p-1.5 rounded bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-accent transition">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-                
+                    let mainHtml = '';
+                    if (hasMore) {
+                        mainHtml += `<td class="w-8 px-3 py-3.5 text-center">
+                            <div id="chevron-${idx}" class="inline-flex items-center justify-center w-5 h-5 rounded text-slate-400 group-hover:text-primary transition-transform duration-200">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                            </div>
+                        </td>`;
+                    }
+                    
+                    visibleCols.forEach(col => {
+                        let val = row[col.Field];
+                        let display = val === null ? '<span class="opacity-25 italic">null</span>' 
+                            : (typeof val === 'string' && val.length > 40 ? val.substring(0, 37) + '…' : String(val));
+                        mainHtml += `<td class="px-5 py-3.5 font-mono text-[11px] text-slate-600 dark:text-slate-400 whitespace-nowrap">${display}</td>`;
+                    });
+
+                    mainHtml += `<td class="px-5 py-3.5 text-right">
+                        <div class="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="event.stopPropagation(); expandRow(${idx}, ${JSON.stringify(JSON.stringify(row))}, '${idCol}', '${idVal}')" class="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition text-[10px] font-bold px-3">EDIT</button>
+                            <button onclick="event.stopPropagation(); deleteRecord('${idCol}', '${idVal}')" class="p-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent hover:text-white transition">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            </button>
+                        </div>
+                    </td>`;
+
+                    tr.innerHTML = mainHtml;
+                    if (hasMore) {
+                        tr.addEventListener('click', () => toggleSubRow(idx, row, idCol, idVal));
+                    }
+                    tbody.appendChild(tr);
+
+                    // --- Sub Row (hidden by default) ---
+                    const subTr = document.createElement('tr');
+                    subTr.id = subId;
+                    subTr.className = 'hidden bg-slate-50/80 dark:bg-white/[0.02]';
+                    subTr.innerHTML = `<td colspan="${totalCols}" class="px-0 py-0">
+                        <div id="sub-content-${idx}" class="px-6 py-4"></div>
+                    </td>`;
+                    tbody.appendChild(subTr);
+                });
+
                 document.getElementById('record-count').innerText = `${data.total} RECORDS`;
                 document.getElementById('page-info').innerText = `Page ${data.page} of ${data.total_pages}`;
                 totalDbPages = data.total_pages;
@@ -480,6 +516,132 @@
                 
             } catch (err) {
                 console.error("Data Load Error:", err);
+            }
+        }
+
+        // Track which sub-rows are open
+        const openSubRows = new Set();
+
+        function toggleSubRow(idx, row, idCol, idVal) {
+            const subTr = document.getElementById(`sub-${idx}`);
+            const chevron = document.getElementById(`chevron-${idx}`);
+            const isOpen = openSubRows.has(idx);
+
+            if (isOpen) {
+                subTr.classList.add('hidden');
+                chevron.style.transform = '';
+                openSubRows.delete(idx);
+            } else {
+                renderSubRow(idx, row, idCol, idVal);
+                subTr.classList.remove('hidden');
+                chevron.style.transform = 'rotate(90deg)';
+                openSubRows.add(idx);
+            }
+        }
+
+        function expandRow(idx, rowJson, idCol, idVal) {
+            const row = JSON.parse(rowJson);
+            const subTr = document.getElementById(`sub-${idx}`);
+            const chevron = document.getElementById(`chevron-${idx}`);
+            if (!openSubRows.has(idx)) {
+                renderSubRow(idx, row, idCol, idVal);
+                subTr.classList.remove('hidden');
+                if (chevron) chevron.style.transform = 'rotate(90deg)';
+                openSubRows.add(idx);
+            }
+        }
+
+        function renderSubRow(idx, row, idCol, idVal) {
+            const container = document.getElementById(`sub-content-${idx}`);
+            const isDark = document.documentElement.classList.contains('dark');
+
+            const fieldsHtml = currentDbSchema.map(col => {
+                const val = row[col.Field] === null ? '' : String(row[col.Field]);
+                const isPK = col.Key === 'PRI' && col.Extra === 'auto_increment';
+                return `
+                    <div class="flex flex-col gap-1 min-w-[160px] max-w-[240px]">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">${col.Field}
+                            ${isPK ? '<span class="text-primary opacity-60 ml-1">PK</span>' : ''}
+                        </label>
+                        <div 
+                            data-field="${col.Field}"
+                            data-original="${val.replace(/"/g, '&quot;')}"
+                            contenteditable="${isPK ? 'false' : 'true'}"
+                            ondblclick="this.focus()"
+                            class="sub-field px-3 py-2 text-[11px] font-mono rounded-lg border border-transparent ${isPK ? 'opacity-50 cursor-not-allowed' : 'cursor-text hover:border-primary/30 focus:border-primary focus:bg-primary/5'} bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300 outline-none transition min-h-[32px] break-all"
+                            style="white-space: pre-wrap;"
+                        >${val}</div>
+                    </div>`;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden bg-white dark:bg-[#0A0D14] shadow-sm">
+                    <div class="px-5 py-3 bg-slate-50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            Full Record — ${idCol}: <span class="text-primary">${idVal}</span>
+                            <span class="ml-3 opacity-60 normal-case font-normal italic">Double-click any field to edit</span>
+                        </span>
+                        <div class="flex gap-2">
+                            <button onclick="saveInlineEdit('${idCol}', '${idVal}', ${idx})" class="flex items-center gap-1.5 px-4 py-1.5 bg-primary text-white rounded-lg text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition shadow shadow-primary/20">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                Save
+                            </button>
+                            <button onclick="deleteRecord('${idCol}', '${idVal}')" class="flex items-center gap-1.5 px-4 py-1.5 bg-accent/10 text-accent rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-accent hover:text-white transition">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <div class="flex gap-4 p-5 w-max">${fieldsHtml}</div>
+                    </div>
+                </div>`;
+        }
+
+        async function saveInlineEdit(idCol, idVal, idx) {
+            const container = document.getElementById(`sub-content-${idx}`);
+            const fields = container.querySelectorAll('[data-field]');
+            const payload = {};
+            
+            fields.forEach(el => {
+                const field = el.getAttribute('data-field');
+                const original = el.getAttribute('data-original');
+                const current = el.innerText.trim();
+                if (current !== original && el.contentEditable !== 'false') {
+                    payload[field] = current === '' ? null : current;
+                }
+            });
+
+            if (Object.keys(payload).length === 0) {
+                // No changes
+                fields.forEach(el => el.style.borderColor = '');
+                return;
+            }
+
+            try {
+                const resp = await fetch(`/api/db/data/${currentDbTable}/${idCol}/${idVal}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await resp.json();
+                if (result.status === 'success') {
+                    // Flash green on saved fields
+                    fields.forEach(el => {
+                        const field = el.getAttribute('data-field');
+                        if (payload[field] !== undefined) {
+                            el.style.borderColor = '#22c55e';
+                            el.setAttribute('data-original', el.innerText.trim());
+                            setTimeout(() => el.style.borderColor = '', 1500);
+                        }
+                    });
+                    // Refresh main row
+                    loadTableData();
+                } else {
+                    alert('Save Error: ' + result.message);
+                }
+            } catch (err) {
+                alert('Fatal: ' + err);
             }
         }
 
