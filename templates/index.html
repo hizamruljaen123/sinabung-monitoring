@@ -653,22 +653,35 @@
         function expandToTextArea(el) {
             if (el.getAttribute('data-is-expanded') === 'true' || el.contentEditable === 'false') return;
             
-            const fullVal = el.getAttribute('data-full-value');
+            // Get the raw value (unescaped)
+            const fullValEncoded = el.getAttribute('data-full-value');
             const fieldName = el.getAttribute('data-field');
-            const originalVal = el.getAttribute('data-original');
+            const originalValEncoded = el.getAttribute('data-original');
+            
+            // Simple unescape for textarea display
+            const decodeHtml = (html) => {
+                const txt = document.createElement("textarea");
+                txt.innerHTML = html;
+                return txt.value;
+            };
+
+            const fullVal = decodeHtml(fullValEncoded);
+            const originalVal = decodeHtml(originalValEncoded);
             
             const textarea = document.createElement('textarea');
-            textarea.className = 'w-full bg-primary/5 text-xs font-mono text-slate-700 dark:text-slate-300 p-3 rounded-xl border border-primary/30 outline-none focus:border-primary transition-all min-h-[150px] custom-scrollbar';
+            // Ensure white text in dark mode
+            textarea.className = 'w-full bg-slate-50 dark:bg-white/[0.05] text-xs font-mono text-slate-800 dark:text-white p-4 rounded-xl border border-primary/30 outline-none focus:border-primary transition-all min-h-[150px] custom-scrollbar shadow-inner';
             textarea.value = fullVal;
             textarea.setAttribute('data-field', fieldName);
-            textarea.setAttribute('data-original', originalVal);
-            textarea.setAttribute('data-full-value', fullVal);
+            textarea.setAttribute('data-original', originalValEncoded); // Keep encoded for original comparison
+            textarea.setAttribute('data-full-value', fullValEncoded);
             
             textarea.style.height = 'auto';
-            textarea.style.height = (textarea.scrollHeight + 10) + 'px';
+            textarea.style.height = (textarea.scrollHeight + 20) + 'px';
             
-            el.parentElement.innerHTML = '';
-            el.parentElement.appendChild(textarea);
+            const parent = el.parentElement;
+            parent.innerHTML = '';
+            parent.appendChild(textarea);
             textarea.focus();
             
             textarea.setAttribute('data-is-expanded', 'true');
@@ -676,27 +689,34 @@
 
         async function saveInlineEdit(idCol, idVal, idx) {
             const container = document.getElementById(`sub-content-${idx}`);
-            // Check both contenteditable divs and textareas
             const fields = container.querySelectorAll('[data-field]');
             const payload = {};
             
             fields.forEach(el => {
                 const field = el.getAttribute('data-field');
-                const original = el.getAttribute('data-original');
+                const originalEncoded = el.getAttribute('data-original');
                 const current = el.tagName === 'TEXTAREA' ? el.value : el.innerText.trim();
                 
-                // If it's a truncated div that wasn't expanded, we use the data-full-value to check changes
-                const fullValue = el.getAttribute('data-full-value');
+                const decodeHtml = (html) => {
+                    const txt = document.createElement("textarea");
+                    txt.innerHTML = html;
+                    return txt.value;
+                };
                 
-                if (el.tagName !== 'TEXTAREA' && el.getAttribute('data-is-expanded') === 'false') {
-                    // Not expanded, so the displayed text is truncated. 
-                    // No changes are possible unless expanded, but we check anyway.
-                    if (current !== fullValue.substring(0, 100) + '...' && current !== fullValue) {
-                         payload[field] = current;
-                    }
-                } else {
+                const original = decodeHtml(originalEncoded);
+
+                if (el.tagName === 'TEXTAREA' || el.getAttribute('data-is-expanded') === 'true') {
                     if (current !== original) {
                         payload[field] = current === '' ? null : current;
+                    }
+                } else {
+                    // For non-expanded (truncated) divs, we can't easily edit without expanding
+                    // but we check if somehow the text changed (unlikely without expansion)
+                    const fullValueEncoded = el.getAttribute('data-full-value');
+                    const fullValue = decodeHtml(fullValueEncoded);
+                    
+                    if (current !== fullValue.substring(0, 100) + '...' && current !== fullValue) {
+                         payload[field] = current;
                     }
                 }
             });
