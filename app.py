@@ -342,30 +342,18 @@ def run_telegram_bot():
                             "text": f"🌋 *SINABUNG MONITORING ONLINE*\n\nBot successfully joined this chat.\nChat ID: `{chat_id}`\n\n_To receive alerts here, set this ID as TELEGRAM_CHAT_ID in your configuration._",
                             "parse_mode": "Markdown"
                         })
-                        continue
-
-                    # Clean command from bot mentions (e.g. /getUpdate@SinabungBot -> /getUpdate)
+                                   # Clean command from bot mentions (e.g. /so_update@SinabungBot -> /so_update)
                     cmd = text.split()[0].lower() if text else ""
                     if "@" in cmd:
                         cmd = cmd.split("@")[0]
                     
-                    # Detect chat type
-                    is_group = msg.get("chat", {}).get("type", "") in ["group", "supergroup"]
-                    
-                    # Detect if bot is tagged/mentioned
-                    is_mentioned = f"@{bot_username.lower()}" in text.lower()
-                    is_only_tag = text.strip().lower() == f"@{bot_username.lower()}"
-
-                    # Process if it's a command (starts with /) OR if the bot is tagged
-                    # This allows the bot to work in ANY group (regular or supergroup)
-                    # if the user addresses it directly.
-                    should_process = text.startswith("/") or is_mentioned or is_only_tag or not is_group
-                    
-                    if not should_process:
+                    # ONLY PROCESS IF COMMAND STARTS WITH /so_
+                    # This removes the need for tagging while preventing accidental triggers
+                    if not cmd.startswith("/so_"):
                         continue
 
-                    # Handle /get_id command
-                    if cmd == "/get_id":
+                    # Handle /so_get_id command
+                    if cmd == "/so_get_id":
                         print(f"[*] Sending Chat ID to {chat_id}")
                         requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
                             "chat_id": chat_id,
@@ -373,14 +361,14 @@ def run_telegram_bot():
                             "parse_mode": "Markdown"
                         })
 
-                    elif cmd in ["/update", "/status", "/get_update", "/getupdate"] or is_only_tag:
+                    elif cmd in ["/so_update", "/so_status", "/so_get_update"]:
                         print(f"[*] Received status request from chat {chat_id}")
                         summary = generate_detailed_summary()
                         requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
                             "chat_id": chat_id,
-                            "text": f"👋 *REPORT FOR @{bot_username.upper()}*\n<pre>{summary}</pre>",
+                            "text": f"👋 *SYSTEM_REPORT*\n<pre>{summary}</pre>",
                             "parse_mode": "HTML"
-                        })
+                        })                       })
 
 
 
