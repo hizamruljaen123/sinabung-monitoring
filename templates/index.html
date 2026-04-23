@@ -152,71 +152,6 @@
             @apply absolute inset-0 rounded-full animate-ping opacity-75;
             background: inherit;
         }
-        /* Sticky Table Column */
-        .sticky-col-left {
-            position: sticky !important;
-            left: 0;
-            z-index: 20;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
-        }
-        
-        .dark .sticky-col-left {
-            background-color: #0A0D14 !important;
-            box-shadow: 4px 0 15px rgba(0,0,0,0.3);
-        }
-        
-        .light .sticky-col-left {
-            background-color: #FFFFFF !important;
-        }
-
-        #db-data-table {
-            table-layout: auto;
-            width: 100%;
-            min-width: max-content;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-
-        #db-table-header th, #db-table-body td {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            border-right: 1px solid rgba(0,0,0,0.02);
-            min-width: 200px;
-            max-width: 500px;
-            vertical-align: top;
-            word-wrap: break-word;
-            word-break: break-word;
-            white-space: normal;
-        }
-
-        .dark #db-table-header th, .dark #db-table-body td {
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            border-right: 1px solid rgba(255,255,255,0.02);
-        }
-
-        #db-table-header th.sticky-col-left, #db-table-body td.sticky-col-left {
-            min-width: 80px;
-            max-width: 80px;
-            width: 80px;
-            z-index: 40;
-            text-align: center;
-        }
-
-        #db-table-header th {
-            background-color: #F8FAFC;
-            position: sticky;
-            top: 0;
-            z-index: 30;
-        }
-
-        .dark #db-table-header th {
-            background-color: #0D1117;
-        }
-
-        #db-table-header th.sticky-col-left {
-            z-index: 50;
-        }
-
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -352,13 +287,13 @@
                             </div>
                             
                             <div class="overflow-auto max-h-[700px] custom-scrollbar bg-white dark:bg-[#0A0D14] border-x border-slate-100 dark:border-white/5">
-                                <table id="db-data-table">
-                                    <thead id="db-table-header-container">
+                                <table id="db-data-table" class="w-full text-left border-separate border-spacing-0 min-w-full table-auto">
+                                    <thead class="sticky top-0 z-30">
                                         <tr id="db-table-header">
-                                            <th class="px-6 py-4 text-[10px] text-slate-400 uppercase font-bold italic">No table selected...</th>
+                                            <th class="px-6 py-4 text-[10px] text-slate-400 uppercase font-bold italic bg-slate-50 dark:bg-slate-900/50">No table selected...</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="db-table-body">
+                                    <tbody id="db-table-body" class="bg-white dark:bg-[#0A0D14]">
                                         <!-- Data injected here -->
                                     </tbody>
                                 </table>
@@ -526,10 +461,12 @@
                 currentDbSchema = await resp.json();
                 
                 const headerRow = document.getElementById('db-table-header');
-                headerRow.innerHTML = '<th class="text-[10px] uppercase font-bold text-slate-400 sticky-col-left shadow-[4px_0_15px_rgba(0,0,0,0.05)] bg-[#F8FAFC] dark:bg-[#0D1117] border-r border-slate-200/50 dark:border-white/10">Actions</th>' + 
-                currentDbSchema.map(col => `
-                    <th class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold bg-[#F8FAFC] dark:bg-[#0D1117] border-r border-slate-100/50 dark:border-white/[0.02]">${col.Field}</th>
-                `).join('');
+                headerRow.innerHTML = `
+                    <th class="sticky left-0 z-40 bg-slate-50 dark:bg-slate-900 border-b border-r border-slate-200 dark:border-white/10 px-6 py-4 text-[10px] uppercase font-bold text-slate-400 min-w-[100px]">Actions</th>
+                    ${currentDbSchema.map(col => `
+                        <th class="bg-slate-50 dark:bg-slate-900 border-b border-r border-slate-200 dark:border-white/10 px-6 py-4 text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 whitespace-nowrap min-w-[200px] max-w-[500px]">${col.Field}</th>
+                    `).join('')}
+                `;
             } catch (err) {
                 console.error("Schema Load Error:", err);
             }
@@ -547,7 +484,7 @@
                     
                     return `
                         <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group">
-                            <td class="sticky-col-left bg-white dark:bg-[#0A0D14] border-r border-slate-200/50 dark:border-white/10 group-hover:bg-slate-50 dark:group-hover:bg-[#161B22] transition-colors">
+                            <td class="sticky left-0 z-20 bg-white dark:bg-[#0A0D14] border-b border-r border-slate-200 dark:border-white/10 group-hover:bg-slate-50 dark:group-hover:bg-slate-900 transition-colors px-6 py-4">
                                 <div class="flex justify-center gap-2">
                                     <button onclick='openEditModal(${JSON.stringify(row).replace(/'/g, "&apos;")})' class="p-1.5 rounded bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-primary transition">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -559,8 +496,8 @@
                             </td>
                             ${currentDbSchema.map(col => {
                                 let val = row[col.Field];
-                                if (val === null) val = '<span class="opacity-20 italic">NULL</span>';
-                                return `<td class="font-mono text-[11px] text-slate-600 dark:text-slate-400 border-r border-slate-50 dark:border-white/[0.01]">${val}</td>`;
+                                if (val === null) val = '<span class="opacity-20 italic text-[9px]">NULL</span>';
+                                return `<td class="border-b border-r border-slate-100 dark:border-white/[0.02] px-6 py-4 font-mono text-[11px] text-slate-600 dark:text-slate-400 break-words whitespace-normal min-w-[200px] max-w-[500px]">${val}</td>`;
                             }).join('')}
                         </tr>
                     `;
