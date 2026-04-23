@@ -157,12 +157,12 @@
             position: sticky !important;
             left: 0;
             z-index: 20;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.02);
+            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
         }
         
         .dark .sticky-col-left {
             background-color: #0A0D14 !important;
-            box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+            box-shadow: 4px 0 15px rgba(0,0,0,0.3);
         }
         
         .light .sticky-col-left {
@@ -170,41 +170,51 @@
         }
 
         #db-data-table {
-            table-layout: fixed;
-            width: max-content;
-            min-width: 100%;
+            table-layout: auto;
+            width: 100%;
+            min-width: max-content;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
         #db-table-header th, #db-table-body td {
-            width: 200px;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-right: 1px solid rgba(0,0,0,0.02);
             min-width: 200px;
-            max-width: 400px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            max-width: 500px;
+            vertical-align: top;
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .dark #db-table-header th, .dark #db-table-body td {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-right: 1px solid rgba(255,255,255,0.02);
         }
 
         #db-table-header th.sticky-col-left, #db-table-body td.sticky-col-left {
-            width: 100px;
-            min-width: 100px;
+            min-width: 80px;
+            max-width: 80px;
+            width: 80px;
             z-index: 40;
+            text-align: center;
         }
 
         #db-table-header th {
-            border-bottom: 1px solid rgba(0,0,0,0.05);
             background-color: #F8FAFC;
+            position: sticky;
+            top: 0;
+            z-index: 30;
         }
 
         .dark #db-table-header th {
-            border-bottom: 1px solid rgba(255,255,255,0.05);
             background-color: #0D1117;
         }
 
-        #db-table-body td {
-            border-bottom: 1px solid rgba(0,0,0,0.02);
-        }
-
-        .dark #db-table-body td {
-            border-bottom: 1px solid rgba(255,255,255,0.02);
+        #db-table-header th.sticky-col-left {
+            z-index: 50;
         }
 
         .custom-scrollbar::-webkit-scrollbar {
@@ -341,14 +351,14 @@
                                 </div>
                             </div>
                             
-                            <div class="overflow-auto max-h-[650px] custom-scrollbar bg-white dark:bg-[#0A0D14] border-x border-slate-100 dark:border-white/5">
-                                <table id="db-data-table" class="text-left border-separate border-spacing-0">
-                                    <thead class="sticky top-0 z-30">
+                            <div class="overflow-auto max-h-[700px] custom-scrollbar bg-white dark:bg-[#0A0D14] border-x border-slate-100 dark:border-white/5">
+                                <table id="db-data-table">
+                                    <thead id="db-table-header-container">
                                         <tr id="db-table-header">
                                             <th class="px-6 py-4 text-[10px] text-slate-400 uppercase font-bold italic">No table selected...</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="db-table-body" class="bg-white dark:bg-[#0A0D14]">
+                                    <tbody id="db-table-body">
                                         <!-- Data injected here -->
                                     </tbody>
                                 </table>
@@ -516,9 +526,9 @@
                 currentDbSchema = await resp.json();
                 
                 const headerRow = document.getElementById('db-table-header');
-                headerRow.innerHTML = '<th class="px-6 py-4 text-left text-[10px] uppercase font-bold text-slate-400 sticky-col-left border-r border-slate-200/50 dark:border-white/10 shadow-[4px_0_15px_rgba(0,0,0,0.05)] bg-[#F8FAFC] dark:bg-[#0D1117] z-50">Actions</th>' + 
+                headerRow.innerHTML = '<th class="text-[10px] uppercase font-bold text-slate-400 sticky-col-left shadow-[4px_0_15px_rgba(0,0,0,0.05)] bg-[#F8FAFC] dark:bg-[#0D1117] border-r border-slate-200/50 dark:border-white/10">Actions</th>' + 
                 currentDbSchema.map(col => `
-                    <th class="px-6 py-4 text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold whitespace-nowrap border-r border-slate-100/50 dark:border-white/[0.02] bg-[#F8FAFC] dark:bg-[#0D1117]">${col.Field}</th>
+                    <th class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold bg-[#F8FAFC] dark:bg-[#0D1117] border-r border-slate-100/50 dark:border-white/[0.02]">${col.Field}</th>
                 `).join('');
             } catch (err) {
                 console.error("Schema Load Error:", err);
@@ -537,8 +547,8 @@
                     
                     return `
                         <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group">
-                            <td class="px-6 py-4 text-left sticky-col-left bg-white dark:bg-[#0A0D14] border-r border-slate-200/50 dark:border-white/10 group-hover:bg-slate-50 dark:group-hover:bg-[#161B22] transition-colors z-20">
-                                <div class="flex justify-start gap-2">
+                            <td class="sticky-col-left bg-white dark:bg-[#0A0D14] border-r border-slate-200/50 dark:border-white/10 group-hover:bg-slate-50 dark:group-hover:bg-[#161B22] transition-colors">
+                                <div class="flex justify-center gap-2">
                                     <button onclick='openEditModal(${JSON.stringify(row).replace(/'/g, "&apos;")})' class="p-1.5 rounded bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-primary transition">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                     </button>
@@ -549,11 +559,8 @@
                             </td>
                             ${currentDbSchema.map(col => {
                                 let val = row[col.Field];
-                                let displayVal = val;
-                                if (val === null) displayVal = '<span class="opacity-20 italic">NULL</span>';
-                                else if (typeof val === 'string' && val.length > 50) displayVal = val.substring(0, 47) + '...';
-                                
-                                return `<td class="px-6 py-4 font-mono text-[11px] text-slate-600 dark:text-slate-400 whitespace-nowrap border-r border-slate-50 dark:border-white/[0.01]" title="${val !== null ? val.toString().replace(/"/g, '&quot;') : ''}">${displayVal}</td>`;
+                                if (val === null) val = '<span class="opacity-20 italic">NULL</span>';
+                                return `<td class="font-mono text-[11px] text-slate-600 dark:text-slate-400 border-r border-slate-50 dark:border-white/[0.01]">${val}</td>`;
                             }).join('')}
                         </tr>
                     `;
