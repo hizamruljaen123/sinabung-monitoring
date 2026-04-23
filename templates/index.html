@@ -430,8 +430,9 @@
                 
                 let visibleCols;
                 let hasMore = true;
+                const isArticle = currentDbTable === 'article';
 
-                if (currentDbTable === 'article') {
+                if (isArticle) {
                     const priority = ['tanggal', 'judul', 'sumber'];
                     visibleCols = currentDbSchema.filter(col => priority.includes(col.Field.toLowerCase()));
                     visibleCols.sort((a, b) => priority.indexOf(a.Field.toLowerCase()) - priority.indexOf(b.Field.toLowerCase()));
@@ -441,13 +442,22 @@
                     hasMore = currentDbSchema.length > 6;
                 }
 
+                const table = document.getElementById('db-data-table');
+                if (isArticle) {
+                    table.style.width = '100%';
+                    table.style.minWidth = 'unset';
+                } else {
+                    table.style.width = 'max-content';
+                    table.style.minWidth = '900px';
+                }
+
                 const headerRow = document.getElementById('db-table-header');
                 headerRow.innerHTML = 
                     (hasMore ? `<th class="w-8 px-3 py-4"></th>` : '') +
                     visibleCols.map(col =>
                         `<th class="px-5 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold whitespace-nowrap">${col.Field}</th>`
                     ).join('') +
-                    `<th class="px-5 py-4 text-right text-[10px] uppercase font-bold text-slate-400 whitespace-nowrap">Actions</th>`;
+                    (isArticle ? '' : `<th class="px-5 py-4 text-right text-[10px] uppercase font-bold text-slate-400 whitespace-nowrap">Actions</th>`);
             } catch (err) {
                 console.error("Schema Load Error:", err);
             }
@@ -459,11 +469,12 @@
                 const data = await resp.json();
                 
                 const idCol = currentDbSchema.find(s => s.Key === 'PRI')?.Field || currentDbSchema[0].Field;
+                const isArticle = currentDbTable === 'article';
                 
                 let visibleCols;
                 let hasMore = true;
 
-                if (currentDbTable === 'article') {
+                if (isArticle) {
                     const priority = ['tanggal', 'judul', 'sumber'];
                     visibleCols = currentDbSchema.filter(col => priority.includes(col.Field.toLowerCase()));
                     visibleCols.sort((a, b) => priority.indexOf(a.Field.toLowerCase()) - priority.indexOf(b.Field.toLowerCase()));
@@ -473,7 +484,7 @@
                     hasMore = currentDbSchema.length > 6;
                 }
                 
-                const totalCols = visibleCols.length + (hasMore ? 2 : 1);
+                const totalCols = visibleCols.length + (hasMore ? (isArticle ? 1 : 2) : (isArticle ? 0 : 1));
 
                 const tbody = document.getElementById('db-table-body');
                 tbody.innerHTML = '';
@@ -498,20 +509,21 @@
                     
                     visibleCols.forEach(col => {
                         let val = row[col.Field];
-                        // Stricter character limit for main table view
                         let display = val === null ? '<span class="opacity-25 italic text-[10px]">null</span>' 
                             : (typeof val === 'string' && val.length > 25 ? val.substring(0, 22) + '...' : String(val));
                         mainHtml += `<td class="px-5 py-3.5 font-mono text-[11px] text-slate-600 dark:text-slate-400 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">${display}</td>`;
                     });
 
-                    mainHtml += `<td class="px-5 py-3.5 text-right">
-                        <div class="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="event.stopPropagation(); expandRow(${idx}, ${JSON.stringify(JSON.stringify(row))}, '${idCol}', '${idVal}')" class="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition text-[10px] font-bold px-3 uppercase">Manage</button>
-                            <button onclick="event.stopPropagation(); deleteRecord('${idCol}', '${idVal}')" class="p-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent hover:text-white transition">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                            </button>
-                        </div>
-                    </td>`;
+                    if (!isArticle) {
+                        mainHtml += `<td class="px-5 py-3.5 text-right">
+                            <div class="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="event.stopPropagation(); expandRow(${idx}, ${JSON.stringify(JSON.stringify(row))}, '${idCol}', '${idVal}')" class="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition text-[10px] font-bold px-3 uppercase">Manage</button>
+                                <button onclick="event.stopPropagation(); deleteRecord('${idCol}', '${idVal}')" class="p-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent hover:text-white transition">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                            </div>
+                        </td>`;
+                    }
 
                     tr.innerHTML = mainHtml;
                     tr.addEventListener('click', () => toggleSubRow(idx, row, idCol, idVal));
