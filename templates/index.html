@@ -245,6 +245,10 @@
     </main>
 
     <script>
+        // --- Global State ---
+        let logEventSource = null;
+        let currentAppId = null;
+
         // --- Theme Toggle Logic ---
         const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
         const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
@@ -271,9 +275,6 @@
                 updateChartColors(true);
             }
         });
-
-        // Initialize view
-        showPage('dashboard');
 
         // --- Navigation Logic ---
         function showPage(pageId) {
@@ -315,9 +316,6 @@
         }
 
         // --- Log Streaming Logic ---
-        let logEventSource = null;
-        let currentAppId = null;
-
         function startLogStream(appId) {
             if (currentAppId === appId) return;
             stopLogStream();
@@ -624,6 +622,9 @@
 
         setInterval(fetchStats, 3000);
         fetchStats();
+
+        // Initialize Page View
+        showPage('dashboard');
     </script>
 </body>
 </html>
