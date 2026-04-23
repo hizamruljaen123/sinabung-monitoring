@@ -1,29 +1,34 @@
-<div class="bg-glassbgLight dark:bg-glassbgDark backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl shadow-lg flex-grow animate-slideIn flex flex-col overflow-hidden transition-colors duration-300">
-    <div class="p-5 border-b border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 flex justify-between items-center">
-        <h2 class="font-outfit font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+<div class="glass-panel rounded-[2rem] shadow-2xl flex-grow animate-fade-in flex flex-col overflow-hidden border">
+    <div class="px-8 py-6 flex justify-between items-center border-b bg-white/30 dark:bg-white/[0.02]">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary shadow-inner">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
             </div>
-            Active Services Matrix
-        </h2>
-        <div class="text-[10px] uppercase font-bold text-slate-400">Live Feed</div>
+            <div>
+                <h2 class="text-lg font-outfit font-bold text-slate-800 dark:text-white tracking-tight">System Registry</h2>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Active Microservices Cluster</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5">
+            <div class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></div>
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Live Monitoring</span>
+        </div>
     </div>
     
-    <!-- Clean custom scrollbar for table -->
-    <div class="overflow-x-auto overflow-y-auto max-h-[600px]" style="scrollbar-width: thin;">
+    <div class="overflow-x-auto custom-scrollbar">
         <table id="services-table" class="w-full text-left border-collapse">
-            <thead class="sticky top-0 bg-slate-100/90 dark:bg-[#0f141f]/95 backdrop-blur-md z-10 shadow-sm">
-                <tr>
-                    <th class="p-4 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-white/10">Service Entity</th>
-                    <th class="p-4 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-white/10">Port</th>
-                    <th class="p-4 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-white/10">PID</th>
-                    <th class="p-4 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-white/10">CPU Load</th>
-                    <th class="p-4 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-white/10">Memory</th>
-                    <th class="p-4 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-white/10">Health</th>
-                    <th class="p-4 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-white/10">Status</th>
+            <thead>
+                <tr class="bg-slate-50/50 dark:bg-white/[0.02]">
+                    <th class="px-8 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b">Entity Name</th>
+                    <th class="px-6 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b">Interface</th>
+                    <th class="px-6 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b">Instance ID</th>
+                    <th class="px-6 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b">CPU Utilization</th>
+                    <th class="px-6 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b">Memory Allocated</th>
+                    <th class="px-6 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b">Health State</th>
+                    <th class="px-8 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b text-right">Connectivity</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-slate-100 dark:divide-white/[0.05]">
                 <!-- Table rows injected here -->
             </tbody>
         </table>

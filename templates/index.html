@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SINABUNG MONITORING</title>
+    <title>SINABUNG | PROFESSIONAL MONITORING</title>
     
     <!-- Theme Script -->
     <script>
@@ -16,38 +16,48 @@
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         darkMode: 'class',
         theme: {
           extend: {
             colors: {
-              mainbgDark: '#0B0F19',
-              mainbgLight: '#F8FAFC',
-              glassbgDark: 'rgba(21, 28, 44, 0.7)',
-              glassbgLight: 'rgba(255, 255, 255, 0.8)',
-              textmutedDark: '#94A3B8',
-              textmutedLight: '#64748B',
-              primary: '#38BDF8',
-              secondary: '#818CF8'
+              mainbgDark: '#07090F',
+              mainbgLight: '#F1F5F9',
+              glassbgDark: 'rgba(13, 17, 28, 0.75)',
+              glassbgLight: 'rgba(255, 255, 255, 0.85)',
+              borderDark: 'rgba(255, 255, 255, 0.08)',
+              borderLight: 'rgba(0, 0, 0, 0.08)',
+              primary: '#0EA5E9',
+              secondary: '#6366F1',
+              accent: '#F43F5E',
+              success: '#10B981',
+              warning: '#F59E0B'
             },
             fontFamily: {
               outfit: ['Outfit', 'sans-serif'],
               inter: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
             },
             animation: {
-              pulse2: 'pulse2 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              slideIn: 'slideIn 0.5s ease-out forwards'
+              'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'glow': 'glow 2s ease-in-out infinite alternate',
+              'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'fade-in': 'fadeIn 0.4s ease-out forwards',
             },
             keyframes: {
-              pulse2: {
-                '0%, 100%': { opacity: 1 },
-                '50%': { opacity: .5 },
+              glow: {
+                '0%': { boxShadow: '0 0 5px rgba(14, 165, 233, 0.2), 0 0 10px rgba(14, 165, 233, 0.1)' },
+                '100%': { boxShadow: '0 0 15px rgba(14, 165, 233, 0.5), 0 0 25px rgba(14, 165, 233, 0.3)' },
               },
-              slideIn: {
-                '0%': { transform: 'translateY(15px)', opacity: 0 },
-                '100%': { transform: 'translateY(0)', opacity: 1 },
+              slideUp: {
+                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                '100%': { transform: 'translateY(0)', opacity: '1' },
+              },
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
               }
             }
           }
@@ -55,22 +65,86 @@
       }
     </script>
     <style>
-        /* Smooth scrolling and clean scrollbar */
-        html { scroll-behavior: smooth; }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.3); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(150, 150, 150, 0.5); }
-        
-        .dark body {
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.04), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(129, 140, 248, 0.04), transparent 25%);
+        :root {
+            --primary: #0EA5E9;
+            --secondary: #6366F1;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --accent: #F43F5E;
         }
-        body {
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(129, 140, 248, 0.08), transparent 25%);
+
+        @layer base {
+            html { scroll-behavior: smooth; }
+            body { @apply font-inter antialiased; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.4); }
+        
+        /* Premium Background Effects */
+        .dark body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 0% 0%, rgba(14, 165, 233, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.05) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .glass-panel {
+            @apply backdrop-blur-xl border transition-all duration-300;
+            background: theme('colors.glassbgLight');
+            border-color: theme('colors.borderLight');
+        }
+        .dark .glass-panel {
+            background: theme('colors.glassbgDark');
+            border-color: theme('colors.borderDark');
+        }
+
+        .stat-card {
+            @apply relative overflow-hidden rounded-2xl border transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl;
+        }
+
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0,
+                rgba(255, 255, 255, 0.05) 20%,
+                rgba(255, 255, 255, 0.1) 60%,
+                rgba(255, 255, 255, 0)
+            );
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+
+        .status-dot {
+            @apply w-2 h-2 rounded-full relative;
+        }
+        .status-dot::after {
+            content: '';
+            @apply absolute inset-0 rounded-full animate-ping opacity-75;
+            background: inherit;
         }
     </style>
 </head>
@@ -93,11 +167,11 @@
                 <!-- Right Column -->
                 <div class="flex flex-col gap-8">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="bg-glassbgLight dark:bg-glassbgDark backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl p-5 shadow-lg animate-slideIn transition-colors duration-300">
-                            <canvas id="cpuChart" height="160"></canvas>
+                        <div class="glass-panel rounded-[2rem] p-6 shadow-xl animate-slide-up" style="animation-delay: 0.1s">
+                            <canvas id="cpuChart" height="200"></canvas>
                         </div>
-                        <div class="bg-glassbgLight dark:bg-glassbgDark backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl p-5 shadow-lg animate-slideIn transition-colors duration-300" style="animation-delay: 0.1s">
-                            <canvas id="ramChart" height="160"></canvas>
+                        <div class="glass-panel rounded-[2rem] p-6 shadow-xl animate-slide-up" style="animation-delay: 0.2s">
+                            <canvas id="ramChart" height="200"></canvas>
                         </div>
                     </div>
 
@@ -148,72 +222,113 @@
         });
 
         // --- Chart Configuration ---
-        const MAX_DATA_POINTS = 30;
+        const MAX_DATA_POINTS = 40;
         let chartLabels = [];
         let cpuData = [];
         let ramData = [];
 
         function getChartConfig(isDark) {
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)';
+            const textColor = isDark ? '#64748B' : '#94A3B8';
+            
             return {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    x: { display: false },
+                    x: { 
+                        display: true,
+                        grid: { display: false },
+                        ticks: { display: false }
+                    },
                     y: { 
                         beginAtZero: true,
-                        grid: { color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' },
-                        ticks: { color: isDark ? '#94A3B8' : '#64748B', font: { size: 10, family: 'Inter' } }
+                        max: 100,
+                        grid: { color: gridColor, drawBorder: false },
+                        ticks: { 
+                            color: textColor, 
+                            font: { size: 10, family: 'JetBrains Mono', weight: '500' },
+                            padding: 10,
+                            callback: value => value + '%'
+                        }
                     }
                 },
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                        titleColor: isDark ? '#F1F5F9' : '#0F172A',
+                        bodyColor: isDark ? '#F1F5F9' : '#0F172A',
+                        padding: 12,
+                        cornerRadius: 12,
+                        displayColors: false,
+                        borderWidth: 1,
+                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                    }
+                },
                 elements: {
-                    line: { tension: 0.4, borderWidth: 2 },
-                    point: { radius: 0 }
+                    line: { tension: 0.4, borderWidth: 3, capStyle: 'round' },
+                    point: { radius: 0, hoverRadius: 6, hitRadius: 10 }
                 },
                 interaction: { intersect: false, mode: 'index' }
             };
         }
 
+        const ctxCpu = document.getElementById('cpuChart').getContext('2d');
+        const ctxRam = document.getElementById('ramChart').getContext('2d');
+
+        const cpuGradient = ctxCpu.createLinearGradient(0, 0, 0, 200);
+        cpuGradient.addColorStop(0, 'rgba(14, 165, 233, 0.2)');
+        cpuGradient.addColorStop(1, 'rgba(14, 165, 233, 0)');
+
+        const ramGradient = ctxRam.createLinearGradient(0, 0, 0, 200);
+        ramGradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)');
+        ramGradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+
         const isDarkInitial = document.documentElement.classList.contains('dark');
 
-        const cpuChart = new Chart(document.getElementById('cpuChart'), {
+        const cpuChart = new Chart(ctxCpu, {
             type: 'line',
             data: { labels: chartLabels, datasets: [{ 
-                label: 'CPU (%)', data: cpuData, 
-                borderColor: '#38BDF8', 
-                backgroundColor: 'rgba(56, 189, 248, 0.15)', 
+                label: 'CPU Load', data: cpuData, 
+                borderColor: '#0EA5E9', 
+                backgroundColor: cpuGradient,
                 fill: true 
             }]},
-            options: { ...getChartConfig(isDarkInitial), plugins: { title: { display: true, text: 'CLUSTER CPU LOAD', color: isDarkInitial ? '#94A3B8' : '#475569', font: { family: 'Outfit', size: 12, weight: '600' } } } }
+            options: { ...getChartConfig(isDarkInitial), plugins: { ...getChartConfig(isDarkInitial).plugins, title: { display: true, text: 'CORE PROCESSOR LOAD', align: 'start', color: isDarkInitial ? '#F1F5F9' : '#0F172A', font: { family: 'Outfit', size: 14, weight: '700' }, padding: { bottom: 20 } } } }
         });
 
-        const ramChart = new Chart(document.getElementById('ramChart'), {
+        const ramChart = new Chart(ctxRam, {
             type: 'line',
             data: { labels: chartLabels, datasets: [{ 
-                label: 'RAM (%)', data: ramData, 
-                borderColor: '#818CF8', 
-                backgroundColor: 'rgba(129, 140, 248, 0.15)', 
+                label: 'RAM Usage', data: ramData, 
+                borderColor: '#6366F1', 
+                backgroundColor: ramGradient,
                 fill: true 
             }]},
-            options: { ...getChartConfig(isDarkInitial), plugins: { title: { display: true, text: 'GLOBAL MEMORY UTILIZATION', color: isDarkInitial ? '#94A3B8' : '#475569', font: { family: 'Outfit', size: 12, weight: '600' } } } }
+            options: { ...getChartConfig(isDarkInitial), plugins: { ...getChartConfig(isDarkInitial).plugins, title: { display: true, text: 'GLOBAL MEMORY POOL', align: 'start', color: isDarkInitial ? '#F1F5F9' : '#0F172A', font: { family: 'Outfit', size: 14, weight: '700' }, padding: { bottom: 20 } } } }
         });
 
         function updateChartColors(isDark) {
             const options = getChartConfig(isDark);
-            const titleColor = isDark ? '#94A3B8' : '#475569';
+            const titleColor = isDark ? '#F1F5F9' : '#0F172A';
             
-            cpuChart.options = { ...options, plugins: { title: { display: true, text: 'CLUSTER CPU LOAD', color: titleColor, font: { family: 'Outfit', size: 12, weight: '600' } } } };
-            ramChart.options = { ...options, plugins: { title: { display: true, text: 'GLOBAL MEMORY UTILIZATION', color: titleColor, font: { family: 'Outfit', size: 12, weight: '600' } } } };
+            cpuChart.options = { ...options, plugins: { ...options.plugins, title: { display: true, text: 'CORE PROCESSOR LOAD', align: 'start', color: titleColor, font: { family: 'Outfit', size: 14, weight: '700' }, padding: { bottom: 20 } } } };
+            ramChart.options = { ...options, plugins: { ...options.plugins, title: { display: true, text: 'GLOBAL MEMORY POOL', align: 'start', color: titleColor, font: { family: 'Outfit', size: 14, weight: '700' }, padding: { bottom: 20 } } } };
             
             cpuChart.update();
             ramChart.update();
         }
 
+        // Helper to get color value safely
+        function getColor(name) {
+            return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#000";
+        }
+
         function getHeatmapColor(value, max) {
             const ratio = Math.min(value / max, 1);
-            if (ratio < 0.3) return '#10B981'; // success
-            if (ratio < 0.7) return '#FBBF24'; // warning
-            return '#F43F5E'; // danger
+            if (ratio < 0.4) return getColor("--success");
+            if (ratio < 0.75) return getColor("--warning");
+            return getColor("--accent");
         }
 
         async function fetchStats() {
@@ -221,47 +336,76 @@
                 const response = await fetch('/api/stats');
                 const data = await response.json();
                 
-                document.getElementById('last-update').innerText = `Last Sync: ${data.time}`;
+                document.getElementById('last-update').innerText = `SYNCHRONIZED: ${data.time}`;
                 
-                // Update Metrics Card
+                // Update Metrics Cards with Professional Style
                 const active = data.services.filter(s => s.status === 'ONLINE').length;
+                const total = data.services.length;
+                const healthRatio = (active / total) * 100;
+                
                 document.getElementById('metrics-container').innerHTML = `
-                    <div class="grid grid-cols-3 gap-3">
-                        <div class="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-white/10 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-colors duration-300">
-                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary opacity-80"></div>
-                            <div class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1 mt-1">Total CPU</div>
-                            <div class="text-2xl font-bold text-slate-800 dark:text-white font-outfit">${data.total_cpu}%</div>
-                        </div>
-                        <div class="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-white/10 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-colors duration-300">
-                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-purple-400 opacity-80"></div>
-                            <div class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1 mt-1">Total RAM</div>
-                            <div class="text-2xl font-bold text-slate-800 dark:text-white font-outfit">
-                                ${data.total_ram}<span class="text-xs text-slate-400">/${data.total_ram_capacity}</span> <span class="text-sm">GB</span>
+                    <div class="grid grid-cols-1 gap-5">
+                        <div class="stat-card glass-panel p-6 group">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover:scale-110">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                </div>
+                                <span class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg uppercase">Real-time</span>
                             </div>
-                            <div class="text-[10px] font-bold text-secondary mt-0.5">${data.ram_percent}% Used</div>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total CPU Utilization</p>
+                            <div class="flex items-end gap-2">
+                                <h3 class="text-3xl font-bold font-outfit text-slate-800 dark:text-white">${data.total_cpu}%</h3>
+                                <span class="text-xs text-success font-bold mb-1 flex items-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="mr-0.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg> Stable</span>
+                            </div>
                         </div>
-                        <div class="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-white/10 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-colors duration-300">
-                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500 opacity-80"></div>
-                            <div class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1 mt-1">Services</div>
-                            <div class="text-2xl font-bold text-slate-800 dark:text-white font-outfit">${active}<span class="text-sm text-slate-400">/${data.services.length}</span></div>
+
+                        <div class="stat-card glass-panel p-6 group">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-12 h-12 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary transition-transform group-hover:scale-110">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                                </div>
+                                <span class="text-[10px] font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-lg uppercase">${data.ram_percent}% Capacity</span>
+                            </div>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Global Memory Pool</p>
+                            <div class="flex items-end gap-2">
+                                <h3 class="text-3xl font-bold font-outfit text-slate-800 dark:text-white">${data.total_ram}</h3>
+                                <span class="text-xs text-slate-400 font-medium mb-1.5 uppercase">GB / ${data.total_ram_capacity} GB</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card glass-panel p-6 group">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-12 h-12 rounded-2xl bg-success/10 flex items-center justify-center text-success transition-transform group-hover:scale-110">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                </div>
+                                <span class="text-[10px] font-bold text-success bg-success/10 px-2 py-1 rounded-lg uppercase">System Healthy</span>
+                            </div>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Active Clusters</p>
+                            <div class="flex items-end gap-2">
+                                <h3 class="text-3xl font-bold font-outfit text-slate-800 dark:text-white">${active}</h3>
+                                <span class="text-xs text-slate-400 font-medium mb-1.5 uppercase">Nodes / ${total} Available</span>
+                            </div>
                         </div>
                     </div>
                 `;
 
-                // Update Database Stats
+                // Update Database Stats with Modern List
                 let dbHtml = '';
                 for (const [table, count] of Object.entries(data.db_counts)) {
-                    const formattedCount = count === -1 ? 'Err' : count.toLocaleString();
+                    const formattedCount = count === -1 ? 'OFFLINE' : count.toLocaleString();
                     dbHtml += `
-                        <div class="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 p-3 rounded-xl flex justify-between items-center hover:shadow-md dark:hover:bg-white/10 transition-all duration-300 group">
-                            <span class="text-[13px] font-medium text-slate-600 dark:text-slate-300 capitalize group-hover:text-primary transition-colors">${table.replace(/_/g, ' ')}</span>
-                            <span class="font-outfit font-bold text-primary">${formattedCount}</span>
+                        <div class="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-all group cursor-default border border-transparent hover:border-slate-200 dark:hover:border-white/10">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full ${count === -1 ? 'bg-accent' : 'bg-primary/40 group-hover:bg-primary'} transition-colors"></div>
+                                <span class="text-sm font-medium text-slate-600 dark:text-slate-300 capitalize">${table.replace(/_/g, ' ')}</span>
+                            </div>
+                            <span class="font-mono text-sm font-bold text-slate-800 dark:text-slate-100">${formattedCount}</span>
                         </div>
                     `;
                 }
                 document.getElementById('db-stats-container').innerHTML = dbHtml;
 
-                // Update Table
+                // Update Services Table
                 const sortedServices = [...data.services].sort((a, b) => {
                     if (b.errors !== a.errors) return b.errors - a.errors;
                     if (b.cpu !== a.cpu) return b.cpu - a.cpu;
@@ -273,36 +417,45 @@
                 
                 sortedServices.forEach((svc, i) => {
                     const cpuColor = getHeatmapColor(svc.cpu, 100);
-                    const ramColor = getHeatmapColor(svc.ram, 2000); // assume 2000MB is danger
+                    const ramColor = getHeatmapColor(svc.ram, 2048);
                     
                     const tr = document.createElement('tr');
-                    tr.className = `hover:bg-slate-50 dark:hover:bg-white/5 border-b border-slate-100 dark:border-white/5 transition duration-200 ${svc.status === 'OFFLINE' ? 'opacity-40 grayscale-[0.5]' : ''}`;
+                    tr.className = `group hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors duration-200 ${svc.status === 'OFFLINE' ? 'opacity-50' : ''}`;
 
                     tr.innerHTML = `
-                        <td class="p-3 font-semibold text-slate-700 dark:text-slate-200 text-[13px] whitespace-nowrap">${svc.name}</td>
-                        <td class="p-3"><span class="bg-sky-100 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 px-2 py-1 rounded border border-sky-200 dark:border-sky-500/20 text-xs font-mono font-medium">${svc.port}</span></td>
-                        <td class="p-3 text-slate-500 dark:text-slate-400 font-mono text-xs">${svc.pid}</td>
-                        <td class="p-3">
-                            <div class="font-mono text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">${svc.cpu}%</div>
-                            <div class="w-[70px] h-1.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                                <div class="h-full rounded-full transition-all duration-500" style="width: ${Math.min(svc.cpu, 100)}%; background: ${cpuColor}"></div>
+                        <td class="px-8 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 font-bold text-xs uppercase">${svc.name.charAt(0)}</div>
+                                <span class="font-semibold text-slate-700 dark:text-slate-200 text-sm tracking-tight">${svc.name}</span>
                             </div>
                         </td>
-                        <td class="p-3">
-                            <div class="font-mono text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">${svc.ram} MB</div>
-                            <div class="w-[70px] h-1.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                                <div class="h-full rounded-full transition-all duration-500" style="width: ${Math.min((svc.ram/2000)*100, 100)}%; background: ${ramColor}"></div>
+                        <td class="px-6 py-4"><span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-mono text-[11px] font-bold border dark:border-white/5">${svc.port}</span></td>
+                        <td class="px-6 py-4 font-mono text-[11px] text-slate-400 uppercase">${svc.pid}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-16 h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-700" style="width: ${Math.min(svc.cpu, 100)}%; background: ${cpuColor}"></div>
+                                </div>
+                                <span class="font-mono text-[11px] font-bold text-slate-700 dark:text-slate-300">${svc.cpu}%</span>
                             </div>
                         </td>
-                        <td class="p-3">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-16 h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-700" style="width: ${Math.min((svc.ram/2048)*100, 100)}%; background: ${ramColor}"></div>
+                                </div>
+                                <span class="font-mono text-[11px] font-bold text-slate-700 dark:text-slate-300">${svc.ram} MB</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
                             ${svc.errors > 0 
-                                ? `<span class="bg-rose-100 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 px-2 py-1 rounded text-[11px] font-bold shadow-sm">🔥 ${svc.errors} Logs</span>` 
-                                : `<span class="text-slate-400 dark:text-slate-500 text-[11px] font-medium">Clear</span>`}
+                                ? `<span class="flex items-center gap-1.5 text-accent font-bold text-[10px] uppercase tracking-wider"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${svc.errors} FAULTS</span>` 
+                                : `<span class="text-success font-bold text-[10px] uppercase tracking-wider flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> OPTIMAL</span>`}
                         </td>
-                        <td class="p-3">
-                            <div class="flex items-center gap-2 bg-white/50 dark:bg-black/20 w-max px-2.5 py-1 rounded-full border border-slate-200 dark:border-white/5">
-                                <span class="w-1.5 h-1.5 rounded-full ${svc.status === 'ONLINE' ? 'bg-emerald-500 shadow-[0_0_6px_#10B981] animate-pulse2' : 'bg-slate-400'}"></span>
-                                <span class="text-[10px] uppercase tracking-wider font-bold ${svc.status === 'ONLINE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500'}">${svc.status}</span>
+                        <td class="px-8 py-4 text-right">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full ${svc.status === 'ONLINE' ? 'bg-success/10 text-success' : 'bg-slate-100 dark:bg-white/5 text-slate-400'} border dark:border-white/5">
+                                <span class="status-dot ${svc.status === 'ONLINE' ? 'bg-success' : 'bg-slate-400'}"></span>
+                                <span class="text-[10px] font-bold uppercase tracking-widest">${svc.status}</span>
                             </div>
                         </td>
                     `;
@@ -323,8 +476,8 @@
 
             } catch (error) {
                 console.error('Monitoring Sync Error:', error);
-                document.getElementById('status-pulse').classList.remove('bg-emerald-500');
-                document.getElementById('status-pulse').classList.add('bg-rose-500');
+                document.getElementById('status-pulse').className = 'status-dot bg-accent';
+                document.getElementById('last-update').innerText = 'CONNECTION LOST';
             }
         }
 
