@@ -1,34 +1,31 @@
-<div class="glass-panel rounded-[2rem] shadow-2xl flex-grow animate-fade-in flex flex-col overflow-hidden border">
-    <div class="px-8 py-6 flex justify-between items-center border-b bg-white/30 dark:bg-white/[0.02]">
-        <div class="flex items-center gap-4">
-            <div class="w-10 h-10 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary shadow-inner">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            </div>
-            <div>
-                <h2 class="text-lg font-outfit font-bold text-slate-800 dark:text-white tracking-tight">System Registry</h2>
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Active Microservices Cluster</p>
-            </div>
+<div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden flex flex-col animate-fade-in">
+    <div class="px-6 py-4 flex justify-between items-center border-b border-slate-100 dark:border-white/5">
+        <div class="flex items-center gap-3">
+            <div class="w-2 h-4 bg-primary rounded-full"></div>
+            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">System Registry</h2>
         </div>
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5">
-            <div class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></div>
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Live Monitoring</span>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5">
+                <span class="text-[10px] font-mono text-slate-500">Live:</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+            </div>
         </div>
     </div>
     
-    <div class="overflow-x-auto custom-scrollbar">
-        <table id="services-table" class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-slate-50/50 dark:bg-white/[0.02]">
-                    <th class="px-8 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b">Entity Name</th>
-                    <th class="px-6 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b">Interface</th>
-                    <th class="px-6 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b">Instance ID</th>
-                    <th class="px-6 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b">CPU Utilization</th>
-                    <th class="px-6 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b">Memory Allocated</th>
-                    <th class="px-6 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b">Health State</th>
-                    <th class="px-8 py-5 text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-bold border-b text-right">Connectivity</th>
+    <div class="overflow-x-auto overflow-y-auto max-h-[500px] custom-scrollbar">
+        <table id="services-table" class="w-full text-left border-collapse min-w-[800px]">
+            <thead class="sticky top-0 bg-white dark:bg-[#0A0D14] z-10 border-b border-slate-100 dark:border-white/5">
+                <tr>
+                    <th class="px-6 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Service Entity</th>
+                    <th class="px-4 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Interface</th>
+                    <th class="px-4 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Inst ID</th>
+                    <th class="px-4 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">CPU</th>
+                    <th class="px-4 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Memory</th>
+                    <th class="px-4 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Health</th>
+                    <th class="px-6 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold text-right">Connectivity</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-white/[0.05]">
+            <tbody class="divide-y divide-slate-50 dark:divide-white/[0.03]">
                 <!-- Table rows injected here -->
             </tbody>
         </table>
