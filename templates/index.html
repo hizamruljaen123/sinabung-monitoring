@@ -653,12 +653,11 @@
         function expandToTextArea(el) {
             if (el.getAttribute('data-is-expanded') === 'true' || el.contentEditable === 'false') return;
             
-            // Get the raw value (unescaped)
+            const fieldId = el.id;
             const fullValEncoded = el.getAttribute('data-full-value');
             const fieldName = el.getAttribute('data-field');
             const originalValEncoded = el.getAttribute('data-original');
             
-            // Simple unescape for textarea display
             const decodeHtml = (html) => {
                 const txt = document.createElement("textarea");
                 txt.innerHTML = html;
@@ -666,25 +665,75 @@
             };
 
             const fullVal = decodeHtml(fullValEncoded);
-            const originalVal = decodeHtml(originalValEncoded);
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex flex-col gap-3 w-full animate-fade-in';
             
             const textarea = document.createElement('textarea');
-            // Ensure white text in dark mode
             textarea.className = 'w-full bg-slate-50 dark:bg-white/[0.05] text-xs font-mono text-slate-800 dark:text-white p-4 rounded-xl border border-primary/30 outline-none focus:border-primary transition-all min-h-[150px] custom-scrollbar shadow-inner';
             textarea.value = fullVal;
             textarea.setAttribute('data-field', fieldName);
-            textarea.setAttribute('data-original', originalValEncoded); // Keep encoded for original comparison
+            textarea.setAttribute('data-original', originalValEncoded);
             textarea.setAttribute('data-full-value', fullValEncoded);
-            
             textarea.style.height = 'auto';
             textarea.style.height = (textarea.scrollHeight + 20) + 'px';
             
+            // ESC Key handling
+            textarea.onkeydown = (e) => {
+                if (e.key === 'Escape') {
+                    collapseTextArea(wrapper, fieldId, fieldName, fullValEncoded, originalValEncoded);
+                }
+            };
+            
+            const actionRow = document.createElement('div');
+            actionRow.className = 'flex gap-2 justify-end';
+            actionRow.innerHTML = `
+                <button onclick="this.parentElement.parentElement.querySelector('textarea').dispatchEvent(new Event('save'))" class="px-3 py-1 bg-primary text-white text-[9px] font-bold uppercase rounded-lg hover:opacity-90 transition">Save Field</button>
+                <button onclick="collapseTextArea(this.parentElement.parentElement, '${fieldId}', '${fieldName}', \`${fullValEncoded}\`, \`${originalValEncoded}\`)" class="px-3 py-1 bg-slate-100 dark:bg-white/10 text-slate-500 text-[9px] font-bold uppercase rounded-lg hover:bg-slate-200 transition">Cancel</button>
+            `;
+            
+            wrapper.appendChild(textarea);
+            wrapper.appendChild(actionRow);
+            
             const parent = el.parentElement;
             parent.innerHTML = '';
-            parent.appendChild(textarea);
+            parent.appendChild(wrapper);
             textarea.focus();
+        }
+
+        function collapseTextArea(wrapper, fieldId, fieldName, fullValEncoded, originalValEncoded) {
+            const parent = wrapper.parentElement;
+            const decodeHtml = (html) => {
+                const txt = document.createElement("textarea");
+                txt.innerHTML = html;
+                return txt.value;
+            };
+            const fullVal = decodeHtml(fullValEncoded);
+            const isLong = fullVal.length > 100;
+            const displayVal = isLong ? fullVal.substring(0, 100) + '...' : fullVal;
             
-            textarea.setAttribute('data-is-expanded', 'true');
+            const div = document.createElement('div');
+            div.id = fieldId;
+            div.className = `sub-field-text text-xs font-mono text-slate-700 dark:text-slate-300 outline-none min-h-[1.5rem] leading-relaxed break-words whitespace-pre-wrap p-2 hover:bg-primary/5 rounded-lg focus:bg-primary/10 transition-all`;
+            div.setAttribute('data-field', fieldName);
+            div.setAttribute('data-full-value', fullValEncoded);
+            div.setAttribute('data-original', originalValEncoded);
+            div.setAttribute('data-is-expanded', 'false');
+            div.contentEditable = 'true';
+            div.ondblclick = function() { expandToTextArea(this); };
+            div.style.cssText = "word-break: break-word; overflow-wrap: break-word; max-width: 100%; max-height: 200px; overflow-y: auto;";
+            div.innerHTML = escapeHtml(displayVal);
+            
+            parent.innerHTML = '';
+            parent.appendChild(div);
+            
+            // Re-add hint if long
+            if (isLong) {
+                const hint = document.createElement('span');
+                hint.className = 'absolute right-2 bottom-1 text-[8px] font-bold text-primary/40 uppercase tracking-tighter pointer-events-none opacity-0 group-hover/field:opacity-100 transition-opacity';
+                hint.innerText = 'Double click to expand';
+                parent.appendChild(hint);
+            }
         }
 
         async function saveInlineEdit(idCol, idVal, idx) {
