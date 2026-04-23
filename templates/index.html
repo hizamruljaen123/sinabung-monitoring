@@ -275,9 +275,9 @@
                                 </div>
                             </div>
                             
-                            <div class="overflow-x-auto overflow-y-auto max-h-[600px] custom-scrollbar flex-grow">
-                                <table id="db-data-table" class="w-full text-left border-collapse min-w-[800px]">
-                                    <thead class="sticky top-0 bg-white dark:bg-[#0A0D14] z-10 border-b border-slate-100 dark:border-white/5">
+                            <div class="overflow-x-auto overflow-y-auto max-h-[700px] custom-scrollbar flex-grow relative">
+                                <table id="db-data-table" class="w-full text-left border-separate border-spacing-0 min-w-max">
+                                    <thead class="sticky top-0 bg-white dark:bg-[#0A0D14] z-30 border-b border-slate-100 dark:border-white/5">
                                         <tr id="db-table-header">
                                             <th class="px-6 py-4 text-[10px] text-slate-400 uppercase font-bold italic">No table selected...</th>
                                         </tr>
@@ -430,8 +430,8 @@
                 
                 const headerRow = document.getElementById('db-table-header');
                 headerRow.innerHTML = currentDbSchema.map(col => `
-                    <th class="px-6 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">${col.Field}</th>
-                `).join('') + '<th class="px-6 py-4 text-right text-[10px] uppercase font-bold text-slate-400">Actions</th>';
+                    <th class="px-6 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold bg-white dark:bg-[#0A0D14] border-b border-slate-100 dark:border-white/5 whitespace-nowrap">${col.Field}</th>
+                `).join('') + '<th class="px-6 py-4 text-right text-[10px] uppercase font-bold text-slate-400 sticky right-0 z-40 bg-white dark:bg-[#0A0D14] border-b border-slate-100 dark:border-white/5 shadow-[-4px_0_8px_rgba(0,0,0,0.02)]">Actions</th>';
             } catch (err) {
                 console.error("Schema Load Error:", err);
             }
@@ -448,14 +448,14 @@
                     const idVal = row[idCol];
                     
                     return `
-                        <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">
+                        <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors group">
                             ${currentDbSchema.map(col => {
                                 let val = row[col.Field];
                                 if (val === null) val = '<span class="opacity-30">NULL</span>';
-                                else if (typeof val === 'string' && val.length > 50) val = val.substring(0, 47) + '...';
-                                return `<td class="px-6 py-4 font-mono text-[11px] text-slate-600 dark:text-slate-400">${val}</td>`;
+                                else if (typeof val === 'string' && val.length > 100) val = val.substring(0, 97) + '...';
+                                return `<td class="px-6 py-4 font-mono text-[11px] text-slate-600 dark:text-slate-400 border-b border-slate-50 dark:border-white/[0.02] max-w-[250px] truncate">${val}</td>`;
                             }).join('')}
-                            <td class="px-6 py-4 text-right">
+                            <td class="px-6 py-4 text-right sticky right-0 z-20 bg-white dark:bg-[#0A0D14] border-b border-slate-50 dark:border-white/[0.02] shadow-[-4px_0_8px_rgba(0,0,0,0.02)] group-hover:bg-slate-50 dark:group-hover:bg-[#0F1219] transition-colors">
                                 <div class="flex justify-end gap-2">
                                     <button onclick='openEditModal(${JSON.stringify(row).replace(/'/g, "&apos;")})' class="p-1.5 rounded bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-primary transition">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
