@@ -342,13 +342,14 @@ def run_telegram_bot():
                             "text": f"🌋 *SINABUNG MONITORING ONLINE*\n\nBot successfully joined this chat.\nChat ID: `{chat_id}`\n\n_To receive alerts here, set this ID as TELEGRAM_CHAT_ID in your configuration._",
                             "parse_mode": "Markdown"
                         })
-                                   # Clean command from bot mentions (e.g. /so_update@SinabungBot -> /so_update)
+                        continue
+
+                    # Clean command from bot mentions (e.g. /so_update@SinabungBot -> /so_update)
                     cmd = text.split()[0].lower() if text else ""
                     if "@" in cmd:
                         cmd = cmd.split("@")[0]
                     
                     # ONLY PROCESS IF COMMAND STARTS WITH /so_
-                    # This removes the need for tagging while preventing accidental triggers
                     if not cmd.startswith("/so_"):
                         continue
 
