@@ -274,11 +274,21 @@ def generate_detailed_summary():
     txt += f"Memory    : {ram_used:>4.2f}/{ram_total:>4.1f} GB ({sys_ram.percent}%)\n"
     txt += f"Services  : {online_count}/{len(services_list)} ONLINE\n"
     txt += separator
+    
+    # Add Database Section
+    db_counts = get_table_counts()
+    txt += "📊 DATABASE STATUS\n"
+    txt += separator
+    for table, count in db_counts.items():
+        name = table.replace('_', ' ').capitalize()
+        val = f"{count:,}" if count >= 0 else "Error"
+        txt += f"{name:<20}: {val:>14}\n"
+    
+    txt += separator
     txt += f"{'SERVICE NAME':<20} {'PRT':<5} {'ST':<3} {'CPU':<5}\n"
     txt += separator
     
     for s in services_list:
-        # Show only online services or all? Let's show all but mark them
         txt += f"{s['name'][:20]:<20} {s['port']:<5} {s['status']:<3} {s['cpu']:>4.1f}%\n"
     
     txt += separator
