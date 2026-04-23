@@ -241,6 +241,89 @@
                     </div>
                 </div>
             </div>
+            <!-- Database Manager View -->
+            <div id="database-view" class="page-view hidden flex flex-col gap-8 animate-fade-in">
+                <div class="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-8">
+                    <!-- Table Selector -->
+                    <div class="flex flex-col gap-6">
+                        <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Select Table</h3>
+                            <div id="db-table-list" class="flex flex-col gap-1 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
+                                <!-- Tables injected here -->
+                                <div class="animate-pulse flex flex-col gap-2">
+                                    <div class="h-8 bg-slate-100 dark:bg-white/5 rounded-lg"></div>
+                                    <div class="h-8 bg-slate-100 dark:bg-white/5 rounded-lg w-3/4"></div>
+                                    <div class="h-8 bg-slate-100 dark:bg-white/5 rounded-lg w-5/6"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Grid -->
+                    <div class="flex flex-col gap-6">
+                        <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[600px]">
+                            <div class="px-6 py-4 flex justify-between items-center border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01]">
+                                <div class="flex items-center gap-3">
+                                    <h2 id="current-table-title" class="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">Select a table to manage</h2>
+                                    <span id="record-count" class="text-[10px] font-mono text-slate-400 font-bold hidden">0 RECORDS</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <button id="btn-add-record" onclick="openAddModal()" class="hidden flex items-center gap-2 px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-[10px] uppercase tracking-wider hover:opacity-90 transition">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        Add Record
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="overflow-x-auto overflow-y-auto max-h-[600px] custom-scrollbar flex-grow">
+                                <table id="db-data-table" class="w-full text-left border-collapse min-w-[800px]">
+                                    <thead class="sticky top-0 bg-white dark:bg-[#0A0D14] z-10 border-b border-slate-100 dark:border-white/5">
+                                        <tr id="db-table-header">
+                                            <th class="px-6 py-4 text-[10px] text-slate-400 uppercase font-bold italic">No table selected...</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="db-table-body" class="divide-y divide-slate-50 dark:divide-white/[0.02]">
+                                        <!-- Data injected here -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            <div id="db-pagination" class="px-6 py-4 border-t border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.01]">
+                                <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-widest" id="page-info">Page 0 of 0</span>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="changeDbPage(-1)" class="p-2 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-primary transition disabled:opacity-30" id="btn-prev-db">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                                    </button>
+                                    <button onclick="changeDbPage(1)" class="p-2 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-primary transition disabled:opacity-30" id="btn-next-db">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Record Modal -->
+            <div id="record-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
+                <div class="relative bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+                    <div class="px-8 py-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+                        <h3 id="modal-title" class="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Record Management</h3>
+                        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
+                    <form id="record-form" class="p-8 overflow-y-auto custom-scrollbar">
+                        <div id="form-fields" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Fields injected here -->
+                        </div>
+                    </form>
+                    <div class="px-8 py-6 border-t border-slate-100 dark:border-white/5 flex justify-end gap-3 bg-slate-50/50 dark:bg-white/[0.01]">
+                        <button onclick="closeModal()" class="px-6 py-2.5 rounded-xl text-slate-500 font-bold text-sm hover:bg-slate-100 dark:hover:bg-white/5 transition">Cancel</button>
+                        <button id="btn-save-record" class="px-8 py-2.5 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:opacity-90 transition uppercase tracking-wider">Save Record</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -292,9 +375,201 @@
 
             if (pageId === 'control') {
                 startLogStream(0); // Default to BE logs
+            } else if (pageId === 'database') {
+                loadDbTables();
+                stopLogStream();
             } else {
                 stopLogStream();
             }
+        }
+
+        // --- Database Manager Logic ---
+        let currentDbTable = null;
+        let currentDbPage = 1;
+        let currentDbSchema = [];
+        let totalDbPages = 1;
+
+        async function loadDbTables() {
+            try {
+                const resp = await fetch('/api/db/tables');
+                const tables = await resp.json();
+                const list = document.getElementById('db-table-list');
+                list.innerHTML = tables.map(t => `
+                    <button onclick="selectDbTable('${t}')" class="db-table-item px-4 py-2.5 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-200 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400">
+                        ${t.replace(/_/g, ' ')}
+                    </button>
+                `).join('');
+            } catch (err) {
+                console.error("Failed to load tables:", err);
+            }
+        }
+
+        async function selectDbTable(tableName) {
+            currentDbTable = tableName;
+            currentDbPage = 1;
+            
+            // UI Update
+            document.querySelectorAll('.db-table-item').forEach(el => {
+                const isActive = el.innerText.trim().toLowerCase() === tableName.replace(/_/g, ' ').toLowerCase();
+                el.classList.toggle('bg-primary/10', isActive);
+                el.classList.toggle('text-primary', isActive);
+            });
+            
+            document.getElementById('current-table-title').innerText = tableName.replace(/_/g, ' ');
+            document.getElementById('btn-add-record').classList.remove('hidden');
+            document.getElementById('record-count').classList.remove('hidden');
+            
+            await loadTableSchema();
+            await loadTableData();
+        }
+
+        async function loadTableSchema() {
+            try {
+                const resp = await fetch(`/api/db/schema/${currentDbTable}`);
+                currentDbSchema = await resp.json();
+                
+                const headerRow = document.getElementById('db-table-header');
+                headerRow.innerHTML = currentDbSchema.map(col => `
+                    <th class="px-6 py-4 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">${col.Field}</th>
+                `).join('') + '<th class="px-6 py-4 text-right text-[10px] uppercase font-bold text-slate-400">Actions</th>';
+            } catch (err) {
+                console.error("Schema Load Error:", err);
+            }
+        }
+
+        async function loadTableData() {
+            try {
+                const resp = await fetch(`/api/db/data/${currentDbTable}?page=${currentDbPage}&per_page=15`);
+                const data = await resp.json();
+                
+                const tbody = document.getElementById('db-table-body');
+                tbody.innerHTML = data.data.map(row => {
+                    const idCol = currentDbSchema.find(s => s.Key === 'PRI')?.Field || currentDbSchema[0].Field;
+                    const idVal = row[idCol];
+                    
+                    return `
+                        <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">
+                            ${currentDbSchema.map(col => {
+                                let val = row[col.Field];
+                                if (val === null) val = '<span class="opacity-30">NULL</span>';
+                                else if (typeof val === 'string' && val.length > 50) val = val.substring(0, 47) + '...';
+                                return `<td class="px-6 py-4 font-mono text-[11px] text-slate-600 dark:text-slate-400">${val}</td>`;
+                            }).join('')}
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <button onclick='openEditModal(${JSON.stringify(row).replace(/'/g, "&apos;")})' class="p-1.5 rounded bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-primary transition">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </button>
+                                    <button onclick="deleteRecord('${idCol}', '${idVal}')" class="p-1.5 rounded bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-accent transition">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                document.getElementById('record-count').innerText = `${data.total} RECORDS`;
+                document.getElementById('page-info').innerText = `Page ${data.page} of ${data.total_pages}`;
+                totalDbPages = data.total_pages;
+                
+                document.getElementById('btn-prev-db').disabled = currentDbPage <= 1;
+                document.getElementById('btn-next-db').disabled = currentDbPage >= totalDbPages;
+                
+            } catch (err) {
+                console.error("Data Load Error:", err);
+            }
+        }
+
+        function changeDbPage(dir) {
+            currentDbPage += dir;
+            loadTableData();
+        }
+
+        // Modal Logic
+        function openAddModal() {
+            document.getElementById('modal-title').innerText = `ADD TO ${currentDbTable.toUpperCase()}`;
+            renderForm({});
+            document.getElementById('btn-save-record').onclick = () => saveRecord('POST');
+            document.getElementById('record-modal').classList.remove('hidden');
+        }
+
+        function openEditModal(row) {
+            document.getElementById('modal-title').innerText = `EDIT RECORD // ${currentDbTable.toUpperCase()}`;
+            renderForm(row);
+            
+            const idCol = currentDbSchema.find(s => s.Key === 'PRI')?.Field || currentDbSchema[0].Field;
+            const idVal = row[idCol];
+            
+            document.getElementById('btn-save-record').onclick = () => saveRecord('PUT', idCol, idVal);
+            document.getElementById('record-modal').classList.remove('hidden');
+        }
+
+        function renderForm(data) {
+            const container = document.getElementById('form-fields');
+            container.innerHTML = currentDbSchema.map(col => {
+                const val = data[col.Field] || '';
+                const isReadonly = col.Key === 'PRI' && col.Extra === 'auto_increment';
+                
+                return `
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${col.Field} <span class="text-[9px] lowercase italic opacity-50">(${col.Type})</span></label>
+                        ${col.Type.includes('text') || col.Type.includes('longtext') 
+                            ? `<textarea name="${col.Field}" class="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 focus:border-primary transition outline-none h-32 custom-scrollbar">${val}</textarea>`
+                            : `<input type="text" name="${col.Field}" value="${val}" ${isReadonly ? 'readonly opacity-50' : ''} class="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 focus:border-primary transition outline-none">`
+                        }
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function saveRecord(method, idCol, idVal) {
+            const formData = new FormData(document.getElementById('record-form'));
+            const payload = {};
+            formData.forEach((val, key) => {
+                if (val !== "") payload[key] = val;
+            });
+            
+            const url = method === 'POST' 
+                ? `/api/db/data/${currentDbTable}` 
+                : `/api/db/data/${currentDbTable}/${idCol}/${idVal}`;
+                
+            try {
+                const resp = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await resp.json();
+                if (result.status === 'success') {
+                    closeModal();
+                    loadTableData();
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (err) {
+                alert("Fatal Error: " + err);
+            }
+        }
+
+        async function deleteRecord(idCol, idVal) {
+            if (!confirm(`Are you sure you want to delete record ${idVal}?`)) return;
+            
+            try {
+                const resp = await fetch(`/api/db/data/${currentDbTable}/${idCol}/${idVal}`, { method: 'DELETE' });
+                const result = await resp.json();
+                if (result.status === 'success') {
+                    loadTableData();
+                } else {
+                    alert("Delete Error: " + result.message);
+                }
+            } catch (err) {
+                alert("Fatal Error: " + err);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('record-modal').classList.add('hidden');
         }
 
         // --- Git Logic ---

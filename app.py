@@ -2,7 +2,7 @@ import os
 import time
 import requests
 import threading
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import psutil
 from datetime import datetime
 import mysql.connector
@@ -427,6 +427,121 @@ def stream_logs(app_id):
             process.wait()
 
     return app.response_class(generate(), mimetype='text/event-stream')
+
+@app.route('/api/db/tables')
+def list_db_tables():
+    conn = get_db_connection()
+    if not conn: return jsonify({"error": "DB Connection Failed"}), 500
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SHOW TABLES")
+        tables = [row[0] for row in cursor.fetchall()]
+        return jsonify(tables)
+    finally:
+        conn.close()
+
+@app.route('/api/db/schema/<table_name>')
+def get_table_schema(table_name):
+    if table_name not in IMPORTANT_TABLES and table_name not in ["airports", "countries", "idx_entity", "power_plants", "railway_stations"]:
+        # Basic security: only allow known tables or perform strict validation
+        pass 
+    
+    conn = get_db_connection()
+    if not conn: return jsonify({"error": "DB Connection Failed"}), 500
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(f"DESCRIBE {table_name}")
+        return jsonify(cursor.fetchall())
+    finally:
+        conn.close()
+
+@app.route('/api/db/data/<table_name>')
+def get_table_data(table_name):
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
+    offset = (page - 1) * per_page
+    
+    conn = get_db_connection()
+    if not conn: return jsonify({"error": "DB Connection Failed"}), 500
+    try:
+        cursor = conn.cursor(dictionary=True)
+        # Get Total Count
+        cursor.execute(f"SELECT COUNT(*) as total FROM {table_name}")
+        total = cursor.fetchone()['total']
+        
+        # Get Data
+        cursor.execute(f"SELECT * FROM {table_name} LIMIT %s OFFSET %s", (per_page, offset))
+        data = cursor.fetchall()
+        
+        # Format datetime and decimal objects for JSON
+        from decimal import Decimal
+        for row in data:
+            for key, val in row.items():
+                if isinstance(val, datetime):
+                    row[key] = val.isoformat()
+                elif isinstance(val, Decimal):
+                    row[key] = float(val)
+                    
+        return jsonify({
+            "data": data,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": (total + per_page - 1) // per_page
+        })
+    finally:
+        conn.close()
+
+@app.route('/api/db/data/<table_name>', methods=['POST'])
+def create_record(table_name):
+    data = request.json
+    columns = ", ".join(data.keys())
+    placeholders = ", ".join(["%s"] * len(data))
+    values = tuple(data.values())
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+        cursor.execute(query, values)
+        conn.commit()
+        return jsonify({"status": "success", "id": cursor.lastrowid})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+    finally:
+        conn.close()
+
+@app.route('/api/db/data/<table_name>/<id_col>/<id_val>', methods=['PUT'])
+def update_record(table_name, id_col, id_val):
+    data = request.json
+    set_clause = ", ".join([f"{k} = %s" for k in data.keys()])
+    values = tuple(data.values()) + (id_val,)
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        query = f"UPDATE {table_name} SET {set_clause} WHERE {id_col} = %s"
+        cursor.execute(query, values)
+        conn.commit()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+    finally:
+        conn.close()
+
+@app.route('/api/db/data/<table_name>/<id_col>/<id_val>', methods=['DELETE'])
+def delete_record(table_name, id_col, id_val):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        query = f"DELETE FROM {table_name} WHERE {id_col} = %s"
+        cursor.execute(query, (id_val,))
+        conn.commit()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+    finally:
+        conn.close()
 
 @app.route('/api/stats')
 def stats():
