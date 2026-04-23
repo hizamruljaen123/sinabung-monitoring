@@ -323,7 +323,34 @@ def run_telegram_bot():
                     text = msg.get("text", "")
                     chat_id = msg.get("chat", {}).get("id")
                     
-                    if text == "/getUpdate":
+                    if not text and "new_chat_members" not in msg:
+                        continue
+
+                    # Handle bot being added to a group
+                    if "new_chat_members" in msg:
+                        print(f"[*] Bot added to chat {chat_id}")
+                        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
+                            "chat_id": chat_id,
+                            "text": f"🌋 *SINABUNG MONITORING ONLINE*\n\nBot successfully joined this chat.\nChat ID: `{chat_id}`\n\n_To receive alerts here, set this ID as TELEGRAM_CHAT_ID in your configuration._",
+                            "parse_mode": "Markdown"
+                        })
+                        continue
+
+                    # Clean command from bot mentions (e.g. /getUpdate@SinabungBot -> /getUpdate)
+                    cmd = text.split()[0].lower() if text else ""
+                    if "@" in cmd:
+                        cmd = cmd.split("@")[0]
+
+                    # Handle /get_id command
+                    if cmd == "/get_id":
+                        print(f"[*] Sending Chat ID to {chat_id}")
+                        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
+                            "chat_id": chat_id,
+                            "text": f"📍 *CONNECTION ESTABLISHED*\n\nYour Chat ID: `{chat_id}`\n\n_Use this ID in your .env file as TELEGRAM_CHAT_ID._",
+                            "parse_mode": "Markdown"
+                        })
+
+                    elif cmd == "/getupdate":
                         print(f"[*] Received /getUpdate from chat {chat_id}")
                         summary = generate_detailed_summary()
                         requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
@@ -331,6 +358,8 @@ def run_telegram_bot():
                             "text": f"<pre>{summary}</pre>",
                             "parse_mode": "HTML"
                         })
+
+
         except Exception as e:
             print(f"Telegram Bot Error: {e}")
         time.sleep(1)
