@@ -1,0 +1,83 @@
+<!-- Database Manager View -->
+<div id="database-view" class="page-view hidden flex flex-col gap-8 animate-fade-in">
+    <div class="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-8">
+        <!-- Table Selector -->
+        <div class="flex flex-col gap-6">
+            <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Select Table</h3>
+                <div id="db-table-list" class="flex flex-col gap-1 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
+                    <!-- Tables injected by db_manager.js -->
+                    <div class="animate-pulse flex flex-col gap-2">
+                        <div class="h-8 bg-slate-100 dark:bg-white/5 rounded-lg"></div>
+                        <div class="h-8 bg-slate-100 dark:bg-white/5 rounded-lg w-3/4"></div>
+                        <div class="h-8 bg-slate-100 dark:bg-white/5 rounded-lg w-5/6"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Grid -->
+        <div class="flex flex-col gap-6">
+            <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[600px]">
+                <div class="px-6 py-4 flex justify-between items-center border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01]">
+                    <div class="flex items-center gap-3">
+                        <h2 id="current-table-title" class="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">Select a table to manage</h2>
+                        <span id="record-count" class="text-[10px] font-mono text-slate-400 font-bold hidden">0 RECORDS</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button id="btn-add-record" onclick="openAddModal()" class="hidden flex items-center gap-2 px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-[10px] uppercase tracking-wider hover:opacity-90 transition">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Add Record
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative" style="overflow: auto; max-height: 560px; max-width: 100%;">
+                    <table id="db-data-table" class="text-left border-collapse" style="min-width: 900px; width: max-content;">
+                        <thead class="bg-white dark:bg-[#0A0D14] border-b border-slate-100 dark:border-white/5" style="position: sticky; top: 0; z-index: 20;">
+                            <tr id="db-table-header">
+                                <th class="px-6 py-4 text-[10px] text-slate-400 uppercase font-bold italic">No table selected...</th>
+                            </tr>
+                        </thead>
+                        <tbody id="db-table-body" class="divide-y divide-slate-50 dark:divide-white/[0.02]">
+                            <!-- Data injected by db_manager.js -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div id="db-pagination" class="px-6 py-4 border-t border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.01]">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-widest" id="page-info">Page 0 of 0</span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="changeDbPage(-1)" class="p-2 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-primary transition disabled:opacity-30" id="btn-prev-db">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <button onclick="changeDbPage(1)" class="p-2 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-primary transition disabled:opacity-30" id="btn-next-db">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Record Modal -->
+<div id="record-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
+    <div class="relative bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        <div class="px-8 py-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+            <h3 id="modal-title" class="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Record Management</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <form id="record-form" class="p-8 overflow-y-auto custom-scrollbar">
+            <div id="form-fields" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Fields injected by db_manager.js -->
+            </div>
+        </form>
+        <div class="px-8 py-6 border-t border-slate-100 dark:border-white/5 flex justify-end gap-3 bg-slate-50/50 dark:bg-white/[0.01]">
+            <button onclick="closeModal()" class="px-6 py-2.5 rounded-xl text-slate-500 font-bold text-sm hover:bg-slate-100 dark:hover:bg-white/5 transition">Cancel</button>
+            <button id="btn-save-record" class="px-8 py-2.5 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:opacity-90 transition uppercase tracking-wider">Save Record</button>
+        </div>
+    </div>
+</div>

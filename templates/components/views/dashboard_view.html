@@ -1,0 +1,23 @@
+<!-- Dashboard View -->
+<div id="dashboard-view" class="page-view flex flex-col gap-8">
+    <div class="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-8 items-start">
+        <!-- Left Column -->
+        <div class="flex flex-col gap-8">
+            {% include 'components/cards.html' %}
+            {% include 'components/database.html' %}
+        </div>
+
+        <!-- Right Column -->
+        <div class="flex flex-col gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="glass-panel rounded-[2rem] p-6 shadow-xl animate-slide-up" style="animation-delay: 0.1s">
+                    <canvas id="cpuChart" height="200"></canvas>
+                </div>
+                <div class="glass-panel rounded-[2rem] p-6 shadow-xl animate-slide-up" style="animation-delay: 0.2s">
+                    <canvas id="ramChart" height="200"></canvas>
+                </div>
+            </div>
+            {% include 'components/table.html' %}
+        </div>
+    </div>
+</div>

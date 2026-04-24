@@ -1,0 +1,69 @@
+<!-- Server Control View -->
+<div id="control-view" class="page-view hidden flex flex-col gap-8 animate-fade-in">
+    <div class="grid grid-cols-1 xl:grid-cols-[300px_1fr] gap-8">
+        <!-- Controls Sidebar -->
+        <div class="flex flex-col gap-6">
+            <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Git Operations</h3>
+                <div class="flex flex-col gap-3">
+                    <button onclick="runGit('pull')" class="flex items-center justify-center gap-2 w-full py-3 bg-primary text-white rounded-xl font-bold text-sm hover:opacity-90 transition shadow-lg shadow-primary/20">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
+                        GIT PULL
+                    </button>
+                    <button onclick="runGit('stash')" class="flex items-center justify-center gap-2 w-full py-3 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 transition">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12h20"/></svg>
+                        GIT STASH
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Process Management</h3>
+                <div class="flex flex-col gap-3">
+                    <button onclick="pm2Reload(0)" class="flex items-center justify-between w-full px-4 py-3 bg-emerald-500/10 text-emerald-500 rounded-xl font-bold text-xs border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition group">
+                        <span>RELOAD BE (ID: 0)</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:rotate-180 transition-transform duration-500"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    </button>
+                    <button onclick="pm2Reload(1)" class="flex items-center justify-between w-full px-4 py-3 bg-blue-500/10 text-blue-500 rounded-xl font-bold text-xs border border-blue-500/20 hover:bg-blue-500 hover:text-white transition group">
+                        <span>RELOAD FE (ID: 1)</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:rotate-180 transition-transform duration-500"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Log Streaming</h3>
+                <div class="flex flex-col gap-2">
+                    <button id="btn-log-0" onclick="startLogStream(0)" class="log-tab active px-4 py-3 rounded-xl border border-primary bg-primary/5 text-primary text-xs font-bold text-left flex items-center justify-between group">
+                        <span>BACKEND (ID: 0)</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+                    </button>
+                    <button id="btn-log-1" onclick="startLogStream(1)" class="log-tab px-4 py-3 rounded-xl border border-transparent bg-slate-50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 text-xs font-bold text-left flex items-center justify-between hover:bg-slate-100 dark:hover:bg-white/5 transition">
+                        <span>FRONTEND (ID: 1)</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-slate-400 group-hover:bg-primary transition-colors"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terminal View -->
+        <div class="flex flex-col gap-4">
+            <div class="bg-[#05070A] rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col h-[700px]">
+                <div class="px-6 py-3 bg-slate-900/50 border-b border-slate-800 flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <div class="flex gap-1.5">
+                            <div class="w-2.5 h-2.5 rounded-full bg-rose-500/50"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-amber-500/50"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/50"></div>
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-500 uppercase ml-4 tracking-widest">Sinabung_Terminal_v4.0</span>
+                    </div>
+                    <button onclick="clearTerminal()" class="text-[10px] font-bold text-slate-500 hover:text-white transition">CLEAR_BUFFER</button>
+                </div>
+                <div id="terminal-content" class="flex-grow p-6 font-mono text-xs text-slate-300 overflow-y-auto custom-scrollbar whitespace-pre-wrap leading-relaxed">
+                    <div class="text-primary opacity-50 mb-4 tracking-tighter">SINABUNG_SHELL // INITIALIZING_STREAM...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
