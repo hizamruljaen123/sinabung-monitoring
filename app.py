@@ -23,16 +23,14 @@ app.register_blueprint(api)
 app.register_blueprint(filemanager)
 
 if __name__ == '__main__':
-    import os
-    # Start background tasks only once. 
-    # If debug mode is on, Flask reloader runs the script twice; 
-    # we only want the threads in the actual worker process (WERKZEUG_RUN_MAIN=true).
-    if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
-        # Telegram Command Bot (polls for /so_ commands)
-        threading.Thread(target=run_telegram_bot, daemon=True).start()
+    # IMPORTANT: use_reloader=False is REQUIRED.
+    # Flask's reloader spawns a second child process, causing background threads
+    # (Telegram bot, alert loop) to run TWICE → duplicate messages.
+    # For hot-reload during development, use watchdog/nodemon externally instead.
+    threading.Thread(target=run_telegram_bot, daemon=True).start()
 
-        # SO Alert Loop — Server DevOps push alerts
-        from services.bot_so_alerts import run_so_alert_loop
-        threading.Thread(target=run_so_alert_loop, daemon=True).start()
+    from services.bot_so_alerts import run_so_alert_loop
+    threading.Thread(target=run_so_alert_loop, daemon=True).start()
 
-    app.run(host="0.0.0.0", port=9000, debug=True, use_reloader=True)
+    print("[*] Sinabung Monitoring started — reloader DISABLED to prevent duplicate alerts.")
+    app.run(host="0.0.0.0", port=9000, debug=True, use_reloader=False)
