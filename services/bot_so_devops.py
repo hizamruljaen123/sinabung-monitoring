@@ -46,7 +46,7 @@ def handle_so_status(chat_id):
         f"<b>OFFLINE ({len(offline)}):</b>",
         *(offline or ["  —"])
     ]
-    send_message(chat_id, "\n".join(lines))
+    send_message(chat_id, "\n".join(lines[:6]) + f"\n<pre>" + "\n".join(lines[6:]) + "</pre>", auto_delete_seconds=60)
 
 
 # ─── /so_cpu ──────────────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ def handle_so_cpu(chat_id):
         f"Cores      : {psutil.cpu_count(logical=True)} logical\n\n"
         f"<pre>{cores}</pre>"
     )
-    send_message(chat_id, msg)
+    send_message(chat_id, msg, auto_delete_seconds=60)
 
 
 # ─── /so_ram ──────────────────────────────────────────────────────────────────
@@ -87,7 +87,7 @@ def handle_so_ram(chat_id):
         f"Swap Used  : {sw.used/(1024**2):.0f} MB / {sw.total/(1024**2):.0f} MB\n\n"
         f"<b>TOP CONSUMERS:</b>\n<pre>{top}</pre>"
     )
-    send_message(chat_id, msg)
+    send_message(chat_id, msg, auto_delete_seconds=60)
 
 
 # ─── /so_disk ─────────────────────────────────────────────────────────────────
@@ -113,7 +113,7 @@ def handle_so_disk(chat_id):
         f"<pre>{projects_txt}</pre>\n"
         f"📄 Log Dir Size : {log_size:.1f} MB"
     )
-    send_message(chat_id, msg)
+    send_message(chat_id, msg, auto_delete_seconds=60)
 
 
 # ─── /so_db_stats ─────────────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ def handle_so_db_stats(chat_id):
         for t, c in counts.items()
     ])
     msg = f"📊 <b>DATABASE TABLE COUNTS</b>\n\n<pre>{rows}</pre>"
-    send_message(chat_id, msg)
+    send_message(chat_id, msg, auto_delete_seconds=60)
 
 
 # ─── /so_logs_clear ───────────────────────────────────────────────────────────
@@ -133,9 +133,9 @@ def handle_so_logs_clear(chat_id):
     result = purge_all_logs()
     if result["status"] == "success":
         cleared = "\n".join([f"  ✓ {f}" for f in result["cleared"]])
-        send_message(chat_id, f"🗑️ <b>LOG PURGE COMPLETE</b>\n\n<pre>{cleared}</pre>")
+        send_message(chat_id, f"🗑️ <b>LOG PURGE COMPLETE</b>\n\n<pre>{cleared}</pre>", auto_delete_seconds=60)
     else:
-        send_message(chat_id, f"❌ <b>LOG PURGE FAILED</b>\n{result.get('message','')}")
+        send_message(chat_id, f"❌ <b>LOG PURGE FAILED</b>\n{result.get('message','')}", auto_delete_seconds=60)
 
 
 # ─── /so_restart_node <name> ──────────────────────────────────────────────────
@@ -153,18 +153,18 @@ def handle_so_restart_node(chat_id, args):
         import sys
         proc = subprocess.Popen([sys.executable, script_path],
                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        send_message(chat_id, f"🔄 <b>Restarted:</b> <code>{node_name}</code>\nNew PID: {proc.pid}")
+        send_message(chat_id, f"🔄 <b>Restarted:</b> <code>{node_name}</code>\nNew PID: {proc.pid}", auto_delete_seconds=60)
     except Exception as e:
-        send_message(chat_id, f"❌ Failed to restart <code>{node_name}</code>:\n{e}")
+        send_message(chat_id, f"❌ Failed to restart <code>{node_name}</code>:\n{e}", auto_delete_seconds=60)
 
 
 # ─── /so_backup_now ───────────────────────────────────────────────────────────
 def handle_so_backup_now(chat_id):
     data = safe_get(_api("dashboard", "/api/backup/trigger"))
     if data:
-        send_message(chat_id, f"✅ <b>Backup Triggered</b>\n<pre>{str(data)[:500]}</pre>")
+        send_message(chat_id, f"✅ <b>Backup Triggered</b>\n<pre>{str(data)[:500]}</pre>", auto_delete_seconds=60)
     else:
-        send_message(chat_id, "⚠️ Backup service did not respond. Check port 5004/8000.")
+        send_message(chat_id, "⚠️ Backup service did not respond. Check port 5004/8000.", auto_delete_seconds=60)
 
 
 # ─── /so_git_pull ─────────────────────────────────────────────────────────────
@@ -174,9 +174,9 @@ def handle_so_git_pull(chat_id, args):
     try:
         r = subprocess.run(["git", "pull"], capture_output=True, text=True, cwd=cwd, timeout=30)
         out = r.stdout.strip() or r.stderr.strip()
-        send_message(chat_id, f"📦 <b>GIT PULL [{target.upper()}]</b>\n<pre>{out[:1000]}</pre>")
+        send_message(chat_id, f"📦 <b>GIT PULL [{target.upper()}]</b>\n<pre>{out[:1000]}</pre>", auto_delete_seconds=60)
     except Exception as e:
-        send_message(chat_id, f"❌ Git pull failed: {e}")
+        send_message(chat_id, f"❌ Git pull failed: {e}", auto_delete_seconds=60)
 
 
 # ─── /so_npm_build ────────────────────────────────────────────────────────────
@@ -187,6 +187,6 @@ def handle_so_npm_build(chat_id):
                            cwd=FE_DIR, timeout=120, shell=True)
         out = (r.stdout + r.stderr).strip()
         status = "✅ Build SUCCESS" if r.returncode == 0 else "❌ Build FAILED"
-        send_message(chat_id, f"{status}\n<pre>{out[-1500:]}</pre>")
+        send_message(chat_id, f"{status}\n<pre>{out[-1500:]}</pre>", auto_delete_seconds=60)
     except Exception as e:
-        send_message(chat_id, f"❌ npm build error: {e}")
+        send_message(chat_id, f"❌ npm build error: {e}", auto_delete_seconds=60)

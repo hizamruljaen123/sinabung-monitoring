@@ -37,22 +37,55 @@ MAHAMERU_PORTS = {
     "dashboard":    8000,
 }
 
+# ─── Message Tracking (Shared) ────────────────────────────────────────────────
+# Both telegram_bot.py and DevOps handlers can use this to store IDs for /so_clear_history
+SENT_MESSAGES = []  # List of (chat_id, message_id)
+
+def track_message(chat_id, message_id):
+    if message_id:
+        SENT_MESSAGES.append((chat_id, message_id))
+
 def _api(service: str, path: str = ""):
     port = MAHAMERU_PORTS.get(service, 8000)
     return f"http://localhost:{port}{path}"
 
-def send_message(chat_id, text, parse_mode="HTML"):
-    """Send a Telegram message to a specific chat."""
-    if not TELEGRAM_BOT_TOKEN:
-        return
+import threading
+import time
+
+def delete_message(chat_id, message_id, token):
+    """Helper to delete a message after a delay."""
     try:
         requests.post(
+            f"https://api.telegram.org/bot{token}/deleteMessage",
+            json={"chat_id": chat_id, "message_id": message_id},
+            timeout=5
+        )
+    except: pass
+
+def send_message(chat_id, text, parse_mode="HTML", auto_delete_seconds=None):
+    """Send a Telegram message, optionally scheduling it for deletion."""
+    if not TELEGRAM_BOT_TOKEN:
+        return None
+    try:
+        resp = requests.post(
             f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
             json={"chat_id": chat_id, "text": text, "parse_mode": parse_mode},
             timeout=8
         )
+        if resp.status_code == 200:
+            msg_data = resp.json().get("result", {})
+            msg_id = msg_data.get("message_id")
+            
+            if auto_delete_seconds and msg_id:
+                threading.Timer(auto_delete_seconds, delete_message, [chat_id, msg_id, TELEGRAM_BOT_TOKEN]).start()
+            
+            # Always track for manual /so_clear_history
+            track_message(chat_id, msg_id)
+            
+            return msg_id
     except Exception as e:
         print(f"[Bot] send_message error: {e}")
+    return None
 
 def broadcast_alert(text, parse_mode="HTML"):
     """Broadcast an auto-alert to the configured TELEGRAM_CHAT_ID."""

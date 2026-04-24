@@ -13,7 +13,28 @@ Auto-alerts run in separate daemon threads:
 import time
 import requests
 from config import TELEGRAM_BOT_TOKEN
-from services.bot_helpers import send_message
+from services.bot_helpers import send_message, SENT_MESSAGES
+
+def handle_so_clear_history(chat_id):
+    """Batch delete all messages tracked in the current session."""
+    count = 0
+    # Create a local copy to iterate while modifying the global list
+    targets = [m for m in SENT_MESSAGES if m[0] == chat_id]
+    
+    for cid, mid in targets:
+        try:
+            requests.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteMessage",
+                json={"chat_id": cid, "message_id": mid},
+                timeout=5
+            )
+            count += 1
+            # Remove from global list
+            if (cid, mid) in SENT_MESSAGES:
+                SENT_MESSAGES.remove((cid, mid))
+        except: pass
+    
+    send_message(chat_id, f"🧹 <b>CLEANUP COMPLETE</b>\nRemoved {count} messages from session.", auto_delete_seconds=10)
 
 # ─── Import DevOps command handlers ───────────────────────────────────────────
 from services.bot_so_devops import (
@@ -24,23 +45,29 @@ from services.bot_so_devops import (
 
 # ─── Help Text ────────────────────────────────────────────────────────────────
 HELP_TEXT = """
-🌋 <b>SINABUNG MONITORING BOT COMMANDS</b>
+🌋 <b>SINABUNG MONITORING — OPERATIONAL HUB</b>
 
-<b>── SERVER / DEVOPS (/so_) ──</b>
-/so_status         Status semua node cluster
-/so_cpu            Utilisasi CPU per core
-/so_ram            Alokasi memori & top consumers
-/so_disk           Kapasitas disk & ukuran project
-/so_db_stats       Jumlah baris tabel database
-/so_logs_clear     Hapus semua file log (free disk)
-/so_restart_node   [nama] Restart satu service
-/so_backup_now     Trigger backup database sekarang
-/so_git_pull       [be/fe] Pull kode terbaru dari git
-/so_npm_build      Build ulang frontend (npm build)
+<b>── SERVER DIAGNOSTICS ──</b>
+/so_status         ⚡ Cluster Node Health Check
+/so_cpu            📊 CPU Utilization (Logical Cores)
+/so_ram            🧠 Memory Allocation & Top Consumers
+/so_disk           💾 Storage Capacity & Project Sizes
+/so_db_stats       📈 Database Table Row Counts
 
-<b>── UTILS ──</b>
-/so_get_id   Dapatkan Chat ID grup ini
-/help        Tampilkan pesan ini
+<b>── SYSTEM CONTROL ──</b>
+/so_logs_clear     🗑️ Purge All System Logs (Free Space)
+/so_clear_history  🧹 Clear Current Bot Chat Session
+/so_restart_node   🔄 [name] Restart Microservice
+/so_backup_now     📦 Trigger Instant DB Backup
+
+<b>── REPOSITORY & BUILD ──</b>
+/so_git_pull       📦 [be/fe] Pull Latest Source
+/so_npm_build      🏗️ Rebuild Frontend Assets
+
+<b>── UTILITIES ──</b>
+/clear_message     Alias for session cleanup
+/so_get_id         Get current Telegram Chat ID
+/help              Display this guide
 """
 
 
@@ -88,6 +115,9 @@ def _dispatch(cmd: str, args: list, chat_id: int):
 
     elif cmd == "/so_npm_build":
         handle_so_npm_build(chat_id)
+
+    elif cmd in ("/so_clear_history", "/clear_message"):
+        handle_so_clear_history(chat_id)
 
     else:
         # Unknown command from this bot prefix
@@ -154,8 +184,8 @@ def run_telegram_bot():
                     if "@" in raw_cmd:
                         raw_cmd = raw_cmd.split("@")[0]
 
-                    # Only handle /so_ commands (plus /help, /start)
-                    if not (raw_cmd.startswith("/so_") or raw_cmd in ("/help", "/start")):
+                    # Only handle /so_ commands (plus /help, /start, /clear_message)
+                    if not (raw_cmd.startswith("/so_") or raw_cmd in ("/help", "/start", "/clear_message")):
                         continue
 
                     print(f"[Bot] CMD: {raw_cmd} {args} from chat {chat_id}")
