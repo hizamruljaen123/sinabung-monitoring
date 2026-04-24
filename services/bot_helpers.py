@@ -37,13 +37,8 @@ MAHAMERU_PORTS = {
     "dashboard":    8000,
 }
 
-# ─── Message Tracking (Shared) ────────────────────────────────────────────────
-# Both telegram_bot.py and DevOps handlers can use this to store IDs for /so_clear_history
-SENT_MESSAGES = []  # List of (chat_id, message_id)
-
-def track_message(chat_id, message_id):
-    if message_id:
-        SENT_MESSAGES.append((chat_id, message_id))
+# ─── Message Tracking (Persistent SQLite) ──────────────────────────────────────
+from services.bot_cache import save_message
 
 def _api(service: str, path: str = ""):
     port = MAHAMERU_PORTS.get(service, 8000)
@@ -80,7 +75,7 @@ def send_message(chat_id, text, parse_mode="HTML", auto_delete_seconds=None):
                 threading.Timer(auto_delete_seconds, delete_message, [chat_id, msg_id, TELEGRAM_BOT_TOKEN]).start()
             
             # Always track for manual /so_clear_history
-            track_message(chat_id, msg_id)
+            save_message(chat_id, msg_id)
             
             return msg_id
     except Exception as e:

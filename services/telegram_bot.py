@@ -13,28 +13,27 @@ Auto-alerts run in separate daemon threads:
 import time
 import requests
 from config import TELEGRAM_BOT_TOKEN
-from services.bot_helpers import send_message, SENT_MESSAGES
+from services.bot_helpers import send_message
+from services.bot_cache import get_today_messages, clear_today_cache
 
 def handle_so_clear_history(chat_id):
-    """Batch delete all messages tracked in the current session."""
+    """Batch delete all messages tracked for TODAY in SQLite."""
     count = 0
-    # Create a local copy to iterate while modifying the global list
-    targets = [m for m in SENT_MESSAGES if m[0] == chat_id]
+    mids = get_today_messages(chat_id)
     
-    for cid, mid in targets:
+    for mid in mids:
         try:
             requests.post(
                 f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteMessage",
-                json={"chat_id": cid, "message_id": mid},
+                json={"chat_id": chat_id, "message_id": mid},
                 timeout=5
             )
             count += 1
-            # Remove from global list
-            if (cid, mid) in SENT_MESSAGES:
-                SENT_MESSAGES.remove((cid, mid))
         except: pass
     
-    send_message(chat_id, f"🧹 <b>CLEANUP COMPLETE</b>\nRemoved {count} messages from session.", auto_delete_seconds=10)
+    # Clear cache for this chat for today
+    clear_today_cache(chat_id)
+    send_message(chat_id, f"🧹 <b>CLEANUP COMPLETE</b>\nRemoved {count} messages from today's history.", auto_delete_seconds=10)
 
 # ─── Import DevOps command handlers ───────────────────────────────────────────
 from services.bot_so_devops import (

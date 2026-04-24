@@ -34,19 +34,49 @@ def _cooldown_ok(key: str, seconds: int = 900) -> bool:
 
 # ─── Individual Check Functions ───────────────────────────────────────────────
 
+# ─── Crash Aggregation Buffer ────────────────────────────────────────────────
+PENDING_CRASHES = {} # port -> {name, time}
+LAST_FLUSH_TIME = 0
+
 def check_node_crashes():
+    global PENDING_CRASHES
     combined = {**BE_PORTS, **FE_PORTS}
+    now = time.time()
+    
     for port, name in combined.items():
         info = get_process_info(port, name)
-        if info["status"] == "OFFLINE" and _cooldown_ok(f"crash_{port}", 1800):
-            broadcast_alert(
-                f"🚨 <b>[SO_ALERT] NODE CRASH</b>\n\n"
-                f"Service  : <b>{name}</b>\n"
-                f"Port     : <code>{port}</code>\n"
-                f"Status   : ❌ OFFLINE\n"
-                f"Time     : {datetime.now().strftime('%H:%M:%S')}\n\n"
-                f"<i>Launcher auto-recovery should trigger. Check logs.</i>"
-            )
+        if info["status"] == "OFFLINE":
+            # Only add to buffer if NOT in cooldown
+            if now - ALERT_COOLDOWN.get(f"crash_{port}", 0) > 1800:
+                if port not in PENDING_CRASHES:
+                    PENDING_CRASHES[port] = {"name": name, "time": now}
+
+def flush_crash_alerts():
+    global PENDING_CRASHES, LAST_FLUSH_TIME
+    if not PENDING_CRASHES:
+        return
+    
+    now = time.time()
+    # Check if the oldest crash in buffer is older than 60 seconds
+    oldest_time = min(c["time"] for c in PENDING_CRASHES.values())
+    
+    if now - oldest_time >= 60:
+        # Build summary
+        lines = [f"🚨 <b>[SO_ALERT] SYSTEM CRASH SUMMARY</b>\n"]
+        for port, data in PENDING_CRASHES.items():
+            lines.append(f"• <b>{data['name']}</b> (Port: <code>{port}</code>)")
+        
+        lines.append(f"\nTime : {datetime.now().strftime('%H:%M:%S')}")
+        lines.append(f"<i>Launcher auto-recovery active.</i>")
+        
+        broadcast_alert("\n".join(lines))
+        
+        # Move to cooldown to prevent immediate re-alert
+        for port in PENDING_CRASHES:
+            ALERT_COOLDOWN[f"crash_{port}"] = now
+            
+        PENDING_CRASHES.clear()
+        LAST_FLUSH_TIME = now
 
 
 def check_high_ram():
@@ -134,6 +164,7 @@ def run_so_alert_loop():
     while True:
         try:
             check_node_crashes()
+            flush_crash_alerts()
             check_high_ram()
 
             if tick % 6 == 0:      # every 30 sec
