@@ -3,31 +3,46 @@
     <div class="grid grid-cols-1 xl:grid-cols-[300px_1fr] gap-8">
         <!-- Controls Sidebar -->
         <div class="flex flex-col gap-6">
+            <!-- Target Selector -->
             <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Git Operations</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Select Target</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="target-be" onclick="setTarget('be')" class="target-btn px-4 py-2 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 rounded-xl font-bold text-xs transition">BACKEND</button>
+                    <button id="target-fe" onclick="setTarget('fe')" class="target-btn px-4 py-2 bg-primary text-white rounded-xl font-bold text-xs transition">FRONTEND</button>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Git & Dependencies</h3>
                 <div class="flex flex-col gap-3">
-                    <button onclick="runGit('pull')" class="flex items-center justify-center gap-2 w-full py-3 bg-primary text-white rounded-xl font-bold text-sm hover:opacity-90 transition shadow-lg shadow-primary/20">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
-                        GIT PULL
-                    </button>
-                    <button onclick="runGit('stash')" class="flex items-center justify-center gap-2 w-full py-3 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 transition">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12h20"/></svg>
-                        GIT STASH
-                    </button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="runGit('pull')" class="flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-xl font-bold text-[10px] hover:opacity-90 transition shadow-lg shadow-primary/20">GIT PULL</button>
+                        <button onclick="runGit('stash')" class="flex items-center justify-center gap-2 py-3 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 rounded-xl font-bold text-[10px] border border-slate-200 dark:border-white/10 hover:bg-slate-200 transition">GIT STASH</button>
+                    </div>
+                    <button onclick="runAction('npm-install')" class="flex items-center justify-center gap-2 w-full py-3 bg-amber-500/10 text-amber-500 rounded-xl font-bold text-[10px] border border-amber-500/20 hover:bg-amber-500 hover:text-white transition">NPM INSTALL</button>
+                    <button onclick="runAction('build')" class="flex items-center justify-center gap-2 w-full py-3 bg-blue-500/10 text-blue-500 rounded-xl font-bold text-[10px] border border-blue-500/20 hover:bg-blue-500 hover:text-white transition">BUILD PROJECT</button>
                 </div>
             </div>
 
             <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Process Management</h3>
-                <div class="flex flex-col gap-3">
-                    <button onclick="pm2Reload(0)" class="flex items-center justify-between w-full px-4 py-3 bg-emerald-500/10 text-emerald-500 rounded-xl font-bold text-xs border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition group">
-                        <span>RELOAD BE (ID: 0)</span>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:rotate-180 transition-transform duration-500"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                    </button>
-                    <button onclick="pm2Reload(1)" class="flex items-center justify-between w-full px-4 py-3 bg-blue-500/10 text-blue-500 rounded-xl font-bold text-xs border border-blue-500/20 hover:bg-blue-500 hover:text-white transition group">
-                        <span>RELOAD FE (ID: 1)</span>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:rotate-180 transition-transform duration-500"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                    </button>
+                <div class="flex flex-col gap-6">
+                    <!-- Backend ID 0 -->
+                    <div class="flex flex-col gap-2">
+                        <p class="text-[9px] font-bold text-slate-500 uppercase">Backend Core (ID 0)</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="pm2Reload(0)" class="px-3 py-2 bg-emerald-500/10 text-emerald-500 rounded-lg font-bold text-[9px] border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition">RELOAD</button>
+                            <button onclick="clearLogs(0)" class="px-3 py-2 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-lg font-bold text-[9px] border border-slate-200 dark:border-white/10 hover:bg-slate-200 transition">CLEAR LOGS</button>
+                        </div>
+                    </div>
+                    <!-- Frontend ID 1 -->
+                    <div class="flex flex-col gap-2">
+                        <p class="text-[9px] font-bold text-slate-500 uppercase">Frontend UI (ID 1)</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="pm2Reload(1)" class="px-3 py-2 bg-blue-500/10 text-blue-500 rounded-lg font-bold text-[9px] border border-blue-500/20 hover:bg-blue-500 hover:text-white transition">RELOAD</button>
+                            <button onclick="clearLogs(1)" class="px-3 py-2 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-lg font-bold text-[9px] border border-slate-200 dark:border-white/10 hover:bg-slate-200 transition">CLEAR LOGS</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -54,10 +54,18 @@ def stats():
 
 # ─── Git Operations ──────────────────────────────────────────────────────────
 
+def get_cwd(target):
+    import os
+    if target == 'be':
+        return os.path.join(os.path.dirname(__file__), '..', '..', 'mahameru-terminal-be')
+    return os.path.join(os.path.dirname(__file__), '..')
+
 @api.route('/api/git-pull', methods=['POST'])
 def git_pull():
+    target = request.args.get('target', 'fe')
+    cwd = get_cwd(target)
     try:
-        result = subprocess.run(['git', 'pull'], capture_output=True, text=True, check=True)
+        result = subprocess.run(['git', 'pull'], capture_output=True, text=True, check=True, cwd=cwd)
         return jsonify({"status": "success", "output": result.stdout})
     except subprocess.CalledProcessError as e:
         return jsonify({"status": "error", "output": e.stderr}), 500
@@ -65,9 +73,59 @@ def git_pull():
 
 @api.route('/api/git-stash', methods=['POST'])
 def git_stash():
+    target = request.args.get('target', 'fe')
+    cwd = get_cwd(target)
     try:
-        result = subprocess.run(['git', 'stash'], capture_output=True, text=True, check=True)
+        result = subprocess.run(['git', 'stash'], capture_output=True, text=True, check=True, cwd=cwd)
         return jsonify({"status": "success", "output": result.stdout})
+    except subprocess.CalledProcessError as e:
+        return jsonify({"status": "error", "output": e.stderr}), 500
+
+
+# ─── Extra Operations ────────────────────────────────────────────────────────
+
+@api.route('/api/npm-install', methods=['POST'])
+def npm_install():
+    target = request.args.get('target', 'fe')
+    cwd = get_cwd(target)
+    try:
+        result = subprocess.run(['npm', 'install'], capture_output=True, text=True, check=True, cwd=cwd, shell=True)
+        return jsonify({"status": "success", "output": result.stdout})
+    except subprocess.CalledProcessError as e:
+        return jsonify({"status": "error", "output": e.stderr}), 500
+
+@api.route('/api/build', methods=['POST'])
+def build():
+    target = request.args.get('target', 'fe')
+    cwd = get_cwd(target)
+    try:
+        # Assuming npm run build
+        result = subprocess.run(['npm', 'run', 'build'], capture_output=True, text=True, check=True, cwd=cwd, shell=True)
+        return jsonify({"status": "success", "output": result.stdout})
+    except subprocess.CalledProcessError as e:
+        return jsonify({"status": "error", "output": e.stderr}), 500
+
+@api.route('/api/pm2-action/<action>/<int:app_id>', methods=['POST'])
+def pm2_action(action, app_id):
+    if action not in ['start', 'stop', 'restart', 'delete', 'reload']:
+        return jsonify({"status": "error", "message": "Invalid action"}), 400
+    try:
+        result = subprocess.run(
+            ['npx', 'pm2', action, str(app_id)],
+            capture_output=True, text=True, check=True, shell=True
+        )
+        return jsonify({"status": "success", "output": result.stdout})
+    except subprocess.CalledProcessError as e:
+        return jsonify({"status": "error", "output": e.stderr}), 500
+
+@api.route('/api/clear-logs/<int:app_id>', methods=['POST'])
+def clear_logs(app_id):
+    try:
+        result = subprocess.run(
+            ['npx', 'pm2', 'flush', str(app_id)],
+            capture_output=True, text=True, check=True, shell=True
+        )
+        return jsonify({"status": "success", "output": "Logs flushed for ID " + str(app_id)})
     except subprocess.CalledProcessError as e:
         return jsonify({"status": "error", "output": e.stderr}), 500
 

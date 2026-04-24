@@ -1,15 +1,30 @@
 // ─── Terminal & Command Center Logic ──────────────────────────────────────
 let logEventSource = null;
 let currentAppId = null;
+let currentTarget = 'fe'; // Default to Frontend
+
+function setTarget(target) {
+    currentTarget = target;
+    // Update UI for target selection
+    document.querySelectorAll('.target-btn').forEach(btn => {
+        btn.classList.remove('bg-primary', 'text-white');
+        btn.classList.add('bg-slate-100', 'dark:bg-white/5', 'text-slate-600', 'dark:text-slate-400');
+    });
+    const activeBtn = document.getElementById(`target-${target}`);
+    if (activeBtn) {
+        activeBtn.classList.add('bg-primary', 'text-white');
+        activeBtn.classList.remove('bg-slate-100', 'dark:bg-white/5', 'text-slate-600', 'dark:text-slate-400');
+    }
+}
 
 // --- Git Logic ---
 async function runGit(action) {
     const terminal = document.getElementById('terminal-content');
-    terminal.innerHTML += `\n\n<span class="text-primary font-bold">>>> EXECUTING GIT ${action.toUpperCase()}...</span>\n`;
+    terminal.innerHTML += `\n\n<span class="text-primary font-bold">>>> EXECUTING GIT ${action.toUpperCase()} [${currentTarget.toUpperCase()}]...</span>\n`;
     terminal.scrollTop = terminal.scrollHeight;
 
     try {
-        const resp = await fetch(`/api/git-${action}`, { method: 'POST' });
+        const resp = await fetch(`/api/git-${action}?target=${currentTarget}`, { method: 'POST' });
         const data = await resp.json();
         const colorClass = data.status === 'success' ? 'text-success' : 'text-accent';
         terminal.innerHTML += `<div class="${colorClass} mt-2 bg-white/5 p-3 rounded-lg border border-white/5">${data.output}</div>`;
@@ -19,18 +34,55 @@ async function runGit(action) {
     terminal.scrollTop = terminal.scrollHeight;
 }
 
-async function pm2Reload(appId) {
+// --- Generic Action Logic ---
+async function runAction(action) {
     const terminal = document.getElementById('terminal-content');
-    terminal.innerHTML += `\n\n<span class="text-blue-400 font-bold">>>> EXECUTING PM2 RELOAD [ID: ${appId}]...</span>\n`;
+    terminal.innerHTML += `\n\n<span class="text-primary font-bold">>>> EXECUTING ${action.toUpperCase()} [${currentTarget.toUpperCase()}]...</span>\n`;
     terminal.scrollTop = terminal.scrollHeight;
 
     try {
-        const resp = await fetch(`/api/pm2-reload/${appId}`, { method: 'POST' });
+        const resp = await fetch(`/api/${action}?target=${currentTarget}`, { method: 'POST' });
+        const data = await resp.json();
+        const colorClass = data.status === 'success' ? 'text-success' : 'text-accent';
+        terminal.innerHTML += `<div class="${colorClass} mt-2 bg-white/5 p-3 rounded-lg border border-white/5">${data.output}</div>`;
+    } catch (err) {
+        terminal.innerHTML += `<div class="text-accent mt-2">FATAL: Execution failed. System unreachable.</div>`;
+    }
+    terminal.scrollTop = terminal.scrollHeight;
+}
+
+async function pm2Action(action, appId) {
+    const terminal = document.getElementById('terminal-content');
+    terminal.innerHTML += `\n\n<span class="text-blue-400 font-bold">>>> EXECUTING PM2 ${action.toUpperCase()} [ID: ${appId}]...</span>\n`;
+    terminal.scrollTop = terminal.scrollHeight;
+
+    try {
+        const resp = await fetch(`/api/pm2-action/${action}/${appId}`, { method: 'POST' });
         const data = await resp.json();
         const colorClass = data.status === 'success' ? 'text-emerald-400' : 'text-rose-400';
         terminal.innerHTML += `<div class="${colorClass} mt-2 bg-white/5 p-3 rounded-lg border border-white/5 font-mono text-[10px] whitespace-pre-wrap">${data.output}</div>`;
     } catch (err) {
-        terminal.innerHTML += `<div class="text-rose-500 mt-2 italic">FATAL: Reload command failed to reach the core.</div>`;
+        terminal.innerHTML += `<div class="text-rose-500 mt-2 italic">FATAL: Action command failed to reach the core.</div>`;
+    }
+    terminal.scrollTop = terminal.scrollHeight;
+}
+
+async function pm2Reload(appId) {
+    return pm2Action('reload', appId);
+}
+
+async function clearLogs(appId) {
+    const terminal = document.getElementById('terminal-content');
+    terminal.innerHTML += `\n\n<span class="text-yellow-400 font-bold">>>> FLUSHING PM2 LOGS [ID: ${appId}]...</span>\n`;
+    terminal.scrollTop = terminal.scrollHeight;
+
+    try {
+        const resp = await fetch(`/api/clear-logs/${appId}`, { method: 'POST' });
+        const data = await resp.json();
+        const colorClass = data.status === 'success' ? 'text-emerald-400' : 'text-rose-400';
+        terminal.innerHTML += `<div class="${colorClass} mt-2 bg-white/5 p-3 rounded-lg border border-white/5 font-mono text-[10px] whitespace-pre-wrap">${data.output}</div>`;
+    } catch (err) {
+        terminal.innerHTML += `<div class="text-rose-500 mt-2 italic">FATAL: Clear logs command failed.</div>`;
     }
     terminal.scrollTop = terminal.scrollHeight;
 }
