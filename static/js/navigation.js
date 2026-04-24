@@ -13,7 +13,7 @@ function showPage(pageId) {
     activeNav.classList.add('bg-primary/10', 'text-primary', 'border-primary/20', 'font-semibold');
 
     if (pageId === 'control') {
-        startLogStream(0); // Default to BE logs
+        setTarget('be'); // Default to BE logs and unified target
     } else if (pageId === 'database') {
         loadDbTables();
         stopLogStream();

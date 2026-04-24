@@ -116,19 +116,8 @@ function startLogStream(appId) {
     const terminal = document.getElementById('terminal-content');
     terminal.innerHTML = `<div class="text-primary opacity-50 mb-4 tracking-tighter">CONNECTED_TO_APP_ID: ${appId} // FETCHING_REALTIME_STREAM...</div>`;
 
-    // Update UI tabs
-    document.querySelectorAll('.log-tab').forEach(t => {
-        t.classList.remove('border-primary', 'bg-primary/5', 'text-primary');
-        t.classList.add('border-transparent', 'bg-slate-50', 'dark:bg-white/[0.02]', 'text-slate-500', 'dark:text-slate-400');
-        t.querySelector('div').classList.remove('bg-primary', 'animate-pulse');
-        t.querySelector('div').classList.add('bg-slate-400');
-    });
-
-    const activeTab = document.getElementById(`btn-log-${appId}`);
-    activeTab.classList.add('border-primary', 'bg-primary/5', 'text-primary');
-    activeTab.classList.remove('border-transparent', 'bg-slate-50', 'dark:bg-white/[0.02]', 'text-slate-500', 'dark:text-slate-400');
-    activeTab.querySelector('div').classList.add('bg-primary', 'animate-pulse');
-    activeTab.querySelector('div').classList.remove('bg-slate-400');
+    // UI updates for log stream label are now handled in setTarget()
+    // and we no longer have separate .log-tab buttons.
 
     logEventSource = new EventSource(`/api/logs/${appId}`);
     logEventSource.onmessage = function (event) {
