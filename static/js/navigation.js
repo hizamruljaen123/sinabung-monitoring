@@ -17,6 +17,9 @@ function showPage(pageId) {
     } else if (pageId === 'database') {
         loadDbTables();
         stopLogStream();
+    } else if (pageId === 'filemanager') {
+        stopLogStream();
+        fmCheckStatus(); // Check if already authenticated
     } else {
         stopLogStream();
     }

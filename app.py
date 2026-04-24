@@ -13,10 +13,14 @@ Struktur Modular:
 import threading
 from flask import Flask
 from routes.api import api
+from routes.filemanager import filemanager
 from services.telegram_bot import run_telegram_bot
+from config import SECRET_KEY
 
 app = Flask(__name__)
+app.secret_key = SECRET_KEY
 app.register_blueprint(api)
+app.register_blueprint(filemanager)
 
 if __name__ == '__main__':
     # Start the Telegram Bot in a background daemon thread

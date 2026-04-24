@@ -16,6 +16,14 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 RAM_ALERT_THRESHOLD = int(os.getenv("RAM_ALERT_THRESHOLD", "1500"))  # Threshold in MB
 CPU_COUNT = psutil.cpu_count() or 1
 
+# ─── File Manager Config ─────────────────────────────────────────────────────
+# Root directory the file manager can access. Change to '/' for full server access.
+FM_ROOT_PATH = os.getenv("FM_ROOT_PATH", os.path.expanduser("~"))
+# Password required to unlock the File Manager panel
+FM_PASSWORD = os.getenv("FM_PASSWORD", "sinabung2024")
+# Flask secret key for session management
+SECRET_KEY = os.getenv("SECRET_KEY", "sinabung-secret-key-change-me")
+
 LOGS_DIR = os.path.join(os.path.dirname(__file__), '..', 'mahameru-terminal-be', 'logs')
 
 SERVICE_PORTS_MAPPING = {

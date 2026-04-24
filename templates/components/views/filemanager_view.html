@@ -1,0 +1,151 @@
+<!-- ─── File Manager View ─────────────────────────────────────────────── -->
+<div id="filemanager-view" class="page-view hidden flex flex-col gap-0 animate-fade-in -m-8">
+
+    <!-- Lock Screen -->
+    <div id="fm-lock-screen" class="fixed inset-0 z-[90] flex items-center justify-center bg-mainbgDark/95 backdrop-blur-xl" style="margin-left:256px">
+        <div class="flex flex-col items-center gap-8 max-w-sm w-full px-6">
+            <div class="flex flex-col items-center gap-3">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center shadow-2xl shadow-primary/30">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <div class="text-center">
+                    <h2 class="text-xl font-bold text-white font-outfit tracking-tight">FILE MANAGER</h2>
+                    <p class="text-xs text-slate-400 mt-1">Enter root password to access</p>
+                </div>
+            </div>
+
+            <div class="w-full flex flex-col gap-3">
+                <div class="relative">
+                    <input id="fm-password-input" type="password" placeholder="Enter password..."
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-500 outline-none focus:border-primary/60 transition font-mono tracking-widest text-center">
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                </div>
+                <p id="fm-login-error" class="text-accent text-[11px] text-center font-bold hidden"></p>
+                <button onclick="fmLogin()" class="w-full py-3.5 bg-primary text-white rounded-xl font-bold text-sm hover:opacity-90 transition shadow-lg shadow-primary/30 uppercase tracking-wider">
+                    AUTHENTICATE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace -->
+    <div id="fm-workspace" class="hidden flex flex-col h-screen">
+        <!-- Top Bar -->
+        <div class="flex items-center gap-4 px-8 py-4 bg-white dark:bg-[#07090F] border-b border-slate-200 dark:border-white/5 flex-shrink-0">
+            <!-- Breadcrumb -->
+            <div class="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto" id="fm-breadcrumb">
+                <button onclick="fmBrowse('')" class="text-primary font-bold text-xs hover:underline">~</button>
+            </div>
+
+            <!-- Path info -->
+            <div class="flex items-center gap-3 flex-shrink-0">
+                <span id="fm-mode-badge" class="text-[9px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded">LOCAL MODE</span>
+                <span id="fm-item-count" class="text-[10px] font-mono text-slate-400"></span>
+                <span id="fm-selected-count" class="text-[10px] font-bold text-primary"></span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <!-- Upload -->
+                <label class="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white rounded-lg text-[10px] font-bold cursor-pointer hover:opacity-90 transition">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    UPLOAD
+                    <input id="fm-file-input" type="file" multiple class="hidden" onchange="fmUpload(this)">
+                </label>
+
+                <div id="fm-upload-progress" class="hidden flex items-center gap-2 text-[10px] font-bold text-amber-400 font-mono animate-pulse">
+                    <div class="w-2 h-2 rounded-full bg-amber-400"></div>UPLOADING...
+                </div>
+
+                <!-- Mkdir -->
+                <button onclick="fmMkdir()" class="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-primary hover:border-primary/30 transition" title="New Folder">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+                </button>
+
+                <!-- Zip -->
+                <button onclick="fmZip()" class="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-amber-500 hover:border-amber-500/30 transition" title="Compress Selected">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+                </button>
+
+                <!-- Extract -->
+                <button onclick="fmExtract()" class="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-emerald-500 hover:border-emerald-500/30 transition" title="Extract Selected">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+                </button>
+
+                <!-- Rename -->
+                <button onclick="fmRename()" class="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-blue-500 hover:border-blue-500/30 transition" title="Rename">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+
+                <!-- Delete -->
+                <button onclick="fmDelete()" class="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-accent hover:border-accent/30 transition" title="Delete Selected">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                </button>
+
+                <!-- Refresh -->
+                <button onclick="fmBrowse(fmCurrentPath)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-primary hover:border-primary/30 transition" title="Refresh">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                </button>
+
+                <!-- Logout -->
+                <button onclick="fmLogout()" class="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-white transition" title="Lock File Manager">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- FTP Panel -->
+        <div id="ftp-panel" class="px-8 py-4 bg-slate-50 dark:bg-[#0A0D14] border-b border-slate-200 dark:border-white/5 flex items-end gap-4 flex-wrap">
+            <div class="flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">FTP Connection</span>
+            </div>
+            <div class="flex items-center gap-2 flex-1 flex-wrap">
+                <input id="ftp-host" type="text" placeholder="host (e.g. 192.168.1.1)" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono outline-none focus:border-primary transition flex-1 min-w-[160px]">
+                <input id="ftp-port" type="number" placeholder="21" value="21" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono outline-none focus:border-primary transition w-20">
+                <input id="ftp-user" type="text" placeholder="username" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono outline-none focus:border-primary transition w-32">
+                <input id="ftp-password" type="password" placeholder="password" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono outline-none focus:border-primary transition w-32">
+                <button onclick="fmFtpConnect()" class="px-4 py-1.5 bg-primary text-white rounded-lg text-[10px] font-bold hover:opacity-90 transition flex-shrink-0">CONNECT</button>
+                <span id="ftp-status" class="text-[10px] font-bold"></span>
+            </div>
+        </div>
+        <button id="ftp-disconnect-btn" onclick="fmFtpDisconnect()" class="hidden px-8 py-2.5 text-[10px] font-bold text-accent bg-accent/5 border-b border-accent/20 w-full text-left hover:bg-accent/10 transition">
+            ✕ DISCONNECT FTP SESSION
+        </button>
+
+        <!-- Drop Zone + Table -->
+        <div id="fm-drop-zone" class="flex-1 overflow-hidden flex flex-col border-2 border-transparent transition-colors duration-200 relative">
+            <div class="absolute inset-0 pointer-events-none z-10 opacity-0 hover:opacity-0 transition-opacity flex items-center justify-center">
+                <p class="text-primary font-bold text-sm">DROP FILES HERE TO UPLOAD</p>
+            </div>
+
+            <!-- File Table -->
+            <div class="flex-1 overflow-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 z-10 bg-white dark:bg-[#07090F] border-b border-slate-100 dark:border-white/5">
+                        <tr>
+                            <th class="px-4 py-3 w-8">
+                                <input type="checkbox" class="w-4 h-4 rounded border-slate-300 accent-primary" onclick="fmSelectAll()" title="Select All">
+                            </th>
+                            <th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Name</th>
+                            <th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest w-20">Type</th>
+                            <th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest w-24">Size</th>
+                            <th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest w-40">Modified</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fm-file-body" class="divide-y divide-slate-50 dark:divide-white/[0.02]">
+                        <tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 text-xs font-mono">Select a directory to explore</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="flex items-center gap-4 px-6 py-2 bg-slate-50 dark:bg-[#0A0D14] border-t border-slate-100 dark:border-white/5 flex-shrink-0">
+                <span id="fm-path-display" class="text-[10px] font-mono text-slate-400 truncate flex-1">~</span>
+                <span class="text-[10px] font-mono text-slate-500">Double-click to open · Double-click file to download · Drop files to upload</span>
+            </div>
+        </div>
+    </div>
+</div>
