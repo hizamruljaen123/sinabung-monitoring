@@ -62,14 +62,14 @@ def flush_crash_alerts():
     
     if now - oldest_time >= 60:
         # Build summary
-        lines = [f"🚨 <b>[SO_ALERT] SYSTEM CRASH SUMMARY</b>\n"]
+        msg = f"🚨 <b>[SO_ALERT] SYSTEM CRASH SUMMARY</b>\n\n<pre>"
         for port, data in PENDING_CRASHES.items():
-            lines.append(f"• <b>{data['name']}</b> (Port: <code>{port}</code>)")
+            msg += f"• {data['name']:<18} (Port: {port})\n"
         
-        lines.append(f"\nTime : {datetime.now().strftime('%H:%M:%S')}")
-        lines.append(f"<i>Launcher auto-recovery active.</i>")
+        msg += f"</pre>\nTime : {datetime.now().strftime('%H:%M:%S')}\n"
+        msg += f"<i>Launcher auto-recovery active.</i>"
         
-        broadcast_alert("\n".join(lines))
+        broadcast_alert(msg)
         
         # Move to cooldown to prevent immediate re-alert
         for port in PENDING_CRASHES:
@@ -79,18 +79,44 @@ def flush_crash_alerts():
         LAST_FLUSH_TIME = now
 
 
+# ─── RAM Alert Aggregation Buffer ────────────────────────────────────────────
+PENDING_RAM_ALERTS = {} # port -> {name, ram, time}
+
 def check_high_ram():
-    for port, name in {**BE_PORTS, **FE_PORTS}.items():
+    global PENDING_RAM_ALERTS
+    combined = {**BE_PORTS, **FE_PORTS}
+    now = time.time()
+    
+    for port, name in combined.items():
         info = get_process_info(port, name)
         ram = info["ram"]
-        if ram > RAM_ALERT_THRESHOLD and _cooldown_ok(f"ram_{port}", 900):
-            broadcast_alert(
-                f"⚠️ <b>[SO_ALERT] HIGH RAM USAGE</b>\n\n"
-                f"Service  : <b>{name}</b>\n"
-                f"Port     : <code>{port}</code>\n"
-                f"RAM Used : <b>{ram} MB</b> (threshold: {RAM_ALERT_THRESHOLD} MB)\n"
-                f"Time     : {datetime.now().strftime('%H:%M:%S')}"
-            )
+        if ram > RAM_ALERT_THRESHOLD:
+            # Only add if NOT in cooldown
+            if now - ALERT_COOLDOWN.get(f"ram_{port}", 0) > 900:
+                if port not in PENDING_RAM_ALERTS:
+                    PENDING_RAM_ALERTS[port] = {"name": name, "ram": ram, "time": now}
+
+def flush_ram_alerts():
+    global PENDING_RAM_ALERTS
+    if not PENDING_RAM_ALERTS:
+        return
+    
+    now = time.time()
+    oldest_time = min(r["time"] for r in PENDING_RAM_ALERTS.values())
+    
+    if now - oldest_time >= 60:
+        msg = f"⚠️ <b>[SO_ALERT] HIGH RAM USAGE SUMMARY</b>\n\n<pre>"
+        for port, data in PENDING_RAM_ALERTS.items():
+            msg += f"• {data['name']:<18} : {data['ram']} MB\n"
+        
+        msg += f"</pre>\nThreshold : {RAM_ALERT_THRESHOLD} MB\n"
+        msg += f"Time      : {datetime.now().strftime('%H:%M:%S')}"
+        
+        broadcast_alert(msg)
+        
+        for port in PENDING_RAM_ALERTS:
+            ALERT_COOLDOWN[f"ram_{port}"] = now
+        PENDING_RAM_ALERTS.clear()
 
 
 def check_disk_space():
@@ -166,6 +192,7 @@ def run_so_alert_loop():
             check_node_crashes()
             flush_crash_alerts()
             check_high_ram()
+            flush_ram_alerts()
 
             if tick % 6 == 0:      # every 30 sec
                 check_error_log_spikes()

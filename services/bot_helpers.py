@@ -39,6 +39,12 @@ MAHAMERU_PORTS = {
 
 # ─── Message Tracking (Persistent SQLite) ──────────────────────────────────────
 from services.bot_cache import save_message
+import hashlib
+
+LAST_MESSAGE_HASH = {} # chat_id -> md5_hash
+
+def _get_hash(text):
+    return hashlib.md5(text.encode('utf-8')).hexdigest()
 
 def _api(service: str, path: str = ""):
     port = MAHAMERU_PORTS.get(service, 8000)
@@ -61,6 +67,15 @@ def send_message(chat_id, text, parse_mode="HTML", auto_delete_seconds=None):
     """Send a Telegram message, optionally scheduling it for deletion."""
     if not TELEGRAM_BOT_TOKEN:
         return None
+    
+    # Deduplication: Prevent sending the exact same message twice in a row
+    msg_hash = _get_hash(text)
+    if LAST_MESSAGE_HASH.get(chat_id) == msg_hash:
+        # If it's an alert, maybe we want to skip. 
+        # But if it's a command response, usually user wants to see it.
+        # However, "pesan ganda" usually happens with alerts or reloader bugs.
+        return None
+    
     try:
         resp = requests.post(
             f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
@@ -68,6 +83,7 @@ def send_message(chat_id, text, parse_mode="HTML", auto_delete_seconds=None):
             timeout=8
         )
         if resp.status_code == 200:
+            LAST_MESSAGE_HASH[chat_id] = msg_hash
             msg_data = resp.json().get("result", {})
             msg_id = msg_data.get("message_id")
             
