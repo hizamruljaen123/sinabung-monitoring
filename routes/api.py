@@ -3,7 +3,7 @@ import psutil
 from datetime import datetime
 from flask import Blueprint, jsonify, render_template, request
 from config import BE_PORTS, FE_PORTS, DEV_MODE
-from services.monitoring import get_process_info, get_error_counts
+from services.monitoring import get_process_info, get_error_counts, get_disk_usage, purge_all_logs
 from services.database import get_db_connection, get_table_counts, serialize_row
 
 api = Blueprint('api', __name__)
@@ -37,7 +37,7 @@ def stats():
         })
 
     db_counts = get_table_counts()
-    system_cpu = psutil.cpu_percent()
+    system_cpu = psutil.cpu_percent(interval=0.1)
     system_ram = psutil.virtual_memory()
 
     return jsonify({
@@ -130,6 +130,19 @@ def clear_logs(app_id):
         return jsonify({"status": "error", "output": e.stderr}), 500
 
 
+# ─── System Maintenance ──────────────────────────────────────────────────────
+
+@api.route('/api/disk-usage')
+def disk_usage():
+    stats = get_disk_usage()
+    return jsonify(stats)
+
+@api.route('/api/purge-logs', methods=['POST'])
+def purge_logs_action():
+    res = purge_all_logs()
+    return jsonify(res)
+
+
 # ─── PM2 Operations ─────────────────────────────────────────────────────────
 
 @api.route('/api/pm2-reload/<int:app_id>', methods=['POST'])
@@ -144,24 +157,45 @@ def pm2_reload(app_id):
         return jsonify({"status": "error", "output": e.stderr}), 500
 
 
-@api.route('/api/logs/<int:app_id>')
-def stream_logs(app_id):
+@api.route('/api/logs/<int:port>')
+def stream_logs(port):
+    from config import PORT_TO_LOG, LOGS_DIR
+    import os
+    import time
+    
+    log_name = PORT_TO_LOG.get(port)
+    if not log_name:
+        return "Log file not mapped", 404
+    
+    log_path = os.path.join(LOGS_DIR, log_name)
+    
     def generate():
-        # Correct PM2 flag for no-colors is --raw
-        process = subprocess.Popen(
-            ['npx', 'pm2', 'logs', str(app_id), '--lines', '100', '--raw'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1
-        )
+        if not os.path.exists(log_path):
+            yield f"data: [SYSTEM] Waiting for log file: {log_name}...\n\n"
+            while not os.path.exists(log_path):
+                time.sleep(1)
+        
+        # Read the last 50 lines first
         try:
-            for line in iter(process.stdout.readline, ''):
-                if line:
-                    yield f"data: {line}\n\n"
-        finally:
-            process.terminate()
-            process.wait()
+            with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+                f.seek(0, os.SEEK_END)
+                size = f.tell()
+                # Seek back roughly 50 lines
+                f.seek(max(0, size - 5000)) 
+                lines = f.readlines()
+                for line in lines[-50:]:
+                    yield f"data: {line.strip()}\n\n"
+        except: pass
+
+        # Tail the file
+        with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+            f.seek(0, os.SEEK_END)
+            while True:
+                line = f.readline()
+                if not line:
+                    time.sleep(0.5)
+                    continue
+                yield f"data: {line.strip()}\n\n"
 
     from flask import current_app
     return current_app.response_class(generate(), mimetype='text/event-stream')

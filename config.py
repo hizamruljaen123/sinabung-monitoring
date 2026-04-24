@@ -107,6 +107,7 @@ _ALL_BE_PORTS = {
     8140: "Conflict Svc",
     8150: "Gov Facility Svc",
     8160: "Military Svc",
+    9000: "Sinabung Monitoring (Self)",
 }
 
 DEV_ESSENTIAL_PORTS = [5006, 8092, 8200, 8097, 8098, 8093, 8094, 5151]

@@ -23,9 +23,11 @@ app.register_blueprint(api)
 app.register_blueprint(filemanager)
 
 if __name__ == '__main__':
-    # Start the Telegram Bot in a background daemon thread
-    bot_thread = threading.Thread(target=run_telegram_bot, daemon=True)
-    bot_thread.start()
+    # Telegram Command Bot (polls for /so_ and /mt_ commands)
+    threading.Thread(target=run_telegram_bot, daemon=True).start()
 
-    # use_reloader=False prevents starting the bot thread twice in debug mode
-    app.run(host="0.0.0.0", port=9000, debug=True, use_reloader=False)
+    # SO Alert Loop — Server DevOps push alerts
+    from services.bot_so_alerts import run_so_alert_loop
+    threading.Thread(target=run_so_alert_loop, daemon=True).start()
+
+    app.run(host="0.0.0.0", port=9000, debug=True, use_reloader=True)

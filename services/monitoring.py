@@ -53,19 +53,28 @@ def get_process_info(port, name):
 
         if port not in PROCESS_CACHE or PROCESS_CACHE[port].pid != pid:
             try:
-                PROCESS_CACHE[port] = psutil.Process(pid)
-                PROCESS_CACHE[port].cpu_percent()
+                p = psutil.Process(pid)
+                # First call to cpu_percent(interval=None) will return 0.0, 
+                # but it seeds the internal state for the next call.
+                p.cpu_percent(interval=None) 
+                PROCESS_CACHE[port] = p
+                # Short sleep or just wait for next poll to get real data
             except Exception:
                 return {"cpu": 0, "ram": 0, "pid": "-", "status": "OFFLINE"}
 
         proc = PROCESS_CACHE[port]
-        with proc.oneshot():
-            # psutil.Process.cpu_percent() can exceed 100% on multi-core systems.
-            # Normalizing by CPU_COUNT gives the usage relative to total system capacity.
-            cpu = proc.cpu_percent() / CPU_COUNT
-            ram = round(proc.memory_info().rss / (1024 * 1024), 1)
-            check_and_alert(port, name, ram)
-            return {"cpu": round(cpu, 1), "ram": ram, "pid": pid, "status": "ONLINE"}
+        try:
+            with proc.oneshot():
+                # On Windows/Linux, calling this again returns the usage since last call.
+                # Normalized by CPU_COUNT for 'Total System Share' perspective.
+                cpu_raw = proc.cpu_percent(interval=None)
+                cpu = cpu_raw / CPU_COUNT
+                ram = round(proc.memory_info().rss / (1024 * 1024), 1)
+                check_and_alert(port, name, ram)
+                return {"cpu": round(cpu, 1), "ram": ram, "pid": pid, "status": "ONLINE"}
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            del PROCESS_CACHE[port]
+            return {"cpu": 0, "ram": 0, "pid": "-", "status": "OFFLINE"}
 
     except Exception:
         if port in PROCESS_CACHE:
@@ -94,3 +103,52 @@ def get_error_counts(port):
     except Exception:
         pass
     return error_count
+
+
+def get_disk_usage():
+    """Calculate disk usage for each project in the workspace."""
+    import os
+    projects = ['mahameru-terminal-be', 'mahameru-terminal-fe', 'sinabung-monitoring', 'kerinci-maps']
+    base = os.path.join(os.path.dirname(__file__), '..', '..')
+    
+    stats = []
+    for p in projects:
+        path = os.path.abspath(os.path.join(base, p))
+        size = 0
+        if os.path.exists(path):
+            for root, dirs, files in os.walk(path):
+                # Skip node_modules and .git for speed
+                if 'node_modules' in dirs: dirs.remove('node_modules')
+                if '.git' in dirs: dirs.remove('.git')
+                for f in files:
+                    fp = os.path.join(root, f)
+                    try:
+                        if not os.path.islink(fp):
+                            size += os.path.getsize(fp)
+                    except: pass
+        
+        stats.append({
+            "name": p,
+            "size": round(size / (1024 * 1024), 2), # MB
+            "path": path
+        })
+    return stats
+
+
+def purge_all_logs():
+    """Clear all contents from log files in the LOGS_DIR."""
+    import os
+    if not os.path.exists(LOGS_DIR):
+        return {"status": "error", "message": "Logs directory not found"}
+    
+    cleared = []
+    try:
+        for f in os.listdir(LOGS_DIR):
+            if f.endswith('.log'):
+                path = os.path.join(LOGS_DIR, f)
+                with open(path, 'w') as log:
+                    log.truncate(0)
+                cleared.append(f)
+        return {"status": "success", "cleared": cleared}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
