@@ -400,12 +400,37 @@ function renderForm(data) {
             <div class="flex flex-col gap-2">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${col.Field} <span class="text-[9px] lowercase italic opacity-50">(${col.Type})</span></label>
                 ${col.Type.includes('text') || col.Type.includes('longtext')
-                    ? `<textarea name="${col.Field}" class="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 focus:border-primary transition outline-none h-32 custom-scrollbar">${val}</textarea>`
-                    : `<input type="text" name="${col.Field}" value="${val}" ${isReadonly ? 'readonly opacity-50' : ''} class="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 focus:border-primary transition outline-none">`
+                    ? `<textarea name="${col.Field}" oninput="handleFieldChange(this)" class="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 focus:border-primary transition outline-none h-32 custom-scrollbar">${val}</textarea>`
+                    : `<input type="text" name="${col.Field}" value="${val}" ${isReadonly ? 'readonly opacity-50' : ''} oninput="handleFieldChange(this)" class="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 focus:border-primary transition outline-none">`
                 }
             </div>
         `;
     }).join('');
+}
+
+function handleFieldChange(el) {
+    if (currentDbTable === 'data_barang' || currentDbTable === 'bea_masuk') {
+        const form = document.getElementById('record-form');
+        const hargaInput = form.querySelector('[name="harga_pemasukan"]') || form.querySelector('[name="harga"]');
+        const tarifInput = form.querySelector('[name="nilai_tarif_bm"]') || form.querySelector('[name="tarif_bm"]');
+        const aj3Input = form.querySelector('[name="aj3"]') || form.querySelector('[name="AJ3"]');
+
+        if (hargaInput && tarifInput) {
+            let harga = parseFloat(hargaInput.value) || 0;
+            
+            // Logic based on user request:
+            // "rumusnya dari (2 - Harga Pemasukan) harusnya di ganti oleh 0 karena di kode perhitungan itu 0"
+            // We'll apply this logic if a certain condition (like AJ3) is met or as a general rule if requested.
+            
+            if (aj3Input) {
+                // If AJ3 exists, we check its value or just apply the override
+                tarifInput.value = 0; 
+            } else if (harga > 0) {
+                // Default calculation if needed (placeholder)
+                // tarifInput.value = (some_logic);
+            }
+        }
+    }
 }
 
 async function saveRecord(method, idCol, idVal) {

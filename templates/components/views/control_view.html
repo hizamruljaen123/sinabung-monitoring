@@ -24,40 +24,53 @@
                 </div>
             </div>
 
+            <!-- Process Management (Adaptive) -->
             <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Process Management</h3>
-                <div class="flex flex-col gap-6">
-                    <!-- Backend ID 0 -->
-                    <div class="flex flex-col gap-2">
-                        <p class="text-[9px] font-bold text-slate-500 uppercase">Backend Core (ID 0)</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="pm2Reload(0)" class="px-3 py-2 bg-emerald-500/10 text-emerald-500 rounded-lg font-bold text-[9px] border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition">RELOAD</button>
-                            <button onclick="clearLogs(0)" class="px-3 py-2 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-lg font-bold text-[9px] border border-slate-200 dark:border-white/10 hover:bg-slate-200 transition">CLEAR LOGS</button>
-                        </div>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Service Control</h3>
+                
+                <!-- Backend Controls -->
+                <div id="process-info-be" class="process-info flex flex-col gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded">BACKEND CORE</span>
+                        <span class="text-[9px] font-mono text-slate-400">ID: 0</span>
                     </div>
-                    <!-- Frontend ID 1 -->
-                    <div class="flex flex-col gap-2">
-                        <p class="text-[9px] font-bold text-slate-500 uppercase">Frontend UI (ID 1)</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="pm2Reload(1)" class="px-3 py-2 bg-blue-500/10 text-blue-500 rounded-lg font-bold text-[9px] border border-blue-500/20 hover:bg-blue-500 hover:text-white transition">RELOAD</button>
-                            <button onclick="clearLogs(1)" class="px-3 py-2 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-lg font-bold text-[9px] border border-slate-200 dark:border-white/10 hover:bg-slate-200 transition">CLEAR LOGS</button>
-                        </div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="pm2Reload(0)" class="flex items-center justify-center gap-2 py-3 bg-emerald-500/10 text-emerald-500 rounded-xl font-bold text-xs border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition">
+                            RELOAD SERVICE
+                        </button>
+                        <button onclick="clearLogs(0)" class="py-2.5 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-xl font-bold text-[10px] border border-slate-200 dark:border-white/10 hover:bg-slate-200 transition">
+                            FLUSH LOG BUFFER
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Frontend Controls -->
+                <div id="process-info-fe" class="process-info hidden flex flex-col gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-blue-500 bg-blue-500/5 px-2 py-0.5 rounded">FRONTEND UI</span>
+                        <span class="text-[9px] font-mono text-slate-400">ID: 1</span>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="pm2Reload(1)" class="flex items-center justify-center gap-2 py-3 bg-blue-500/10 text-blue-500 rounded-xl font-bold text-xs border border-blue-500/20 hover:bg-blue-500 hover:text-white transition">
+                            RELOAD SERVICE
+                        </button>
+                        <button onclick="clearLogs(1)" class="py-2.5 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-xl font-bold text-[10px] border border-slate-200 dark:border-white/10 hover:bg-slate-200 transition">
+                            FLUSH LOG BUFFER
+                        </button>
                     </div>
                 </div>
             </div>
 
+            <!-- Log Stream Header -->
             <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Log Streaming</h3>
-                <div class="flex flex-col gap-2">
-                    <button id="btn-log-0" onclick="startLogStream(0)" class="log-tab active px-4 py-3 rounded-xl border border-primary bg-primary/5 text-primary text-xs font-bold text-left flex items-center justify-between group">
-                        <span>BACKEND (ID: 0)</span>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Live Stream</h3>
+                    <div class="flex items-center gap-1.5">
                         <div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
-                    </button>
-                    <button id="btn-log-1" onclick="startLogStream(1)" class="log-tab px-4 py-3 rounded-xl border border-transparent bg-slate-50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 text-xs font-bold text-left flex items-center justify-between hover:bg-slate-100 dark:hover:bg-white/5 transition">
-                        <span>FRONTEND (ID: 1)</span>
-                        <div class="w-1.5 h-1.5 rounded-full bg-slate-400 group-hover:bg-primary transition-colors"></div>
-                    </button>
+                        <span id="active-log-label" class="text-[9px] font-bold text-primary uppercase">FE_LOGS</span>
+                    </div>
                 </div>
+                <p class="text-[10px] text-slate-500 leading-relaxed">Streaming real-time logs from the selected target above into the terminal buffer.</p>
             </div>
         </div>
 

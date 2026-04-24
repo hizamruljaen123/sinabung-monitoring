@@ -5,16 +5,36 @@ let currentTarget = 'fe'; // Default to Frontend
 
 function setTarget(target) {
     currentTarget = target;
+    const appId = (target === 'be') ? 0 : 1;
+    const label = (target === 'be') ? 'BACKEND_STREAM' : 'FRONTEND_STREAM';
+
     // Update UI for target selection
     document.querySelectorAll('.target-btn').forEach(btn => {
-        btn.classList.remove('bg-primary', 'text-white');
+        btn.classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/20');
         btn.classList.add('bg-slate-100', 'dark:bg-white/5', 'text-slate-600', 'dark:text-slate-400');
     });
+    
     const activeBtn = document.getElementById(`target-${target}`);
     if (activeBtn) {
-        activeBtn.classList.add('bg-primary', 'text-white');
+        activeBtn.classList.add('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/20');
         activeBtn.classList.remove('bg-slate-100', 'dark:bg-white/5', 'text-slate-600', 'dark:text-slate-400');
     }
+
+    // Update Live Stream label
+    const logLabel = document.getElementById('active-log-label');
+    if (logLabel) {
+        logLabel.innerText = label;
+        logLabel.classList.toggle('text-primary', target === 'be');
+        logLabel.classList.toggle('text-blue-500', target === 'fe');
+    }
+
+    // Auto-switch logs and process display
+    startLogStream(appId);
+    
+    // Toggle visibility of target-specific process info
+    document.querySelectorAll('.process-info').forEach(el => el.classList.add('hidden'));
+    const activeInfo = document.getElementById(`process-info-${target}`);
+    if (activeInfo) activeInfo.classList.remove('hidden');
 }
 
 // --- Git Logic ---
