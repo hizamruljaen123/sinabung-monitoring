@@ -59,7 +59,9 @@ SERVICE_PORTS_MAPPING = {
     "government_facility_service.py": [8150],
     "military_service.py": [8160],
     "crypto_stream_service.py": [8092],
-    "dashboard_service.py": [8000]
+    "dashboard_service.py": [8000],
+    "vite_frontend": [5151],
+    "sinabung_monitoring": [9000]
 }
 
 # Reverse mapping: Port -> Log file name

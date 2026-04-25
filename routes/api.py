@@ -150,7 +150,7 @@ def pm2_reload(app_id):
     try:
         result = subprocess.run(
             ['npx', 'pm2', 'reload', str(app_id)],
-            capture_output=True, text=True, check=True
+            capture_output=True, text=True, check=True, shell=True
         )
         return jsonify({"status": "success", "output": result.stdout})
     except subprocess.CalledProcessError as e:
@@ -164,6 +164,11 @@ def stream_logs(port):
     import time
     
     log_name = PORT_TO_LOG.get(port)
+    
+    # Handle UI Aliases (0 = Backend Core, 1 = Frontend UI)
+    if port == 0: log_name = "dashboard_service.log"
+    if port == 1: log_name = "vite_frontend.log"
+
     if not log_name:
         return "Log file not mapped", 404
     
@@ -198,7 +203,10 @@ def stream_logs(port):
                 yield f"data: {line.strip()}\n\n"
 
     from flask import current_app
-    return current_app.response_class(generate(), mimetype='text/event-stream')
+    resp = current_app.response_class(generate(), mimetype='text/event-stream')
+    resp.headers['X-Accel-Buffering'] = 'no'
+    resp.headers['Cache-Control'] = 'no-cache'
+    return resp
 
 
 # ─── Database Manager ────────────────────────────────────────────────────────
