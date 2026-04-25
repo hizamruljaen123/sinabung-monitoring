@@ -1,23 +1,86 @@
-<!-- Dashboard View -->
-<div id="dashboard-view" class="page-view flex flex-col gap-8">
-    <div class="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-8 items-start">
-        <!-- Left Column -->
-        <div class="flex flex-col gap-8">
-            {% include 'components/cards.html' %}
-            {% include 'components/database.html' %}
-        </div>
-
-        <!-- Right Column -->
-        <div class="flex flex-col gap-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="glass-panel rounded-[2rem] p-6 shadow-xl animate-slide-up" style="animation-delay: 0.1s">
-                    <canvas id="cpuChart" height="200"></canvas>
+<!-- Dashboard View — High Density Layout -->
+<div id="dashboard-view" class="page-view active h-full flex flex-col gap-[10px] overflow-y-auto pr-1">
+    
+    <!-- TOP SECTION: KPIs & Charts -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:10px; flex-shrink:0;">
+        <!-- System KPIs Card -->
+        <div class="panel p-3 flex flex-col justify-between">
+            <div class="section-label mb-2">System Health</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                <div class="panel-sm p-2">
+                    <div class="flex justify-between items-center mb-1">
+                        <span style="font-size:9px;color:#64748B;font-weight:600;">CPU</span>
+                        <span id="kpi-cpu" style="font-size:12px;font-family:'JetBrains Mono';font-weight:700;color:#0EA5E9;">—</span>
+                    </div>
+                    <div class="bar-track"><div id="kpi-cpu-bar" class="bar-fill" style="width:0%;background:#0EA5E9;"></div></div>
                 </div>
-                <div class="glass-panel rounded-[2rem] p-6 shadow-xl animate-slide-up" style="animation-delay: 0.2s">
-                    <canvas id="ramChart" height="200"></canvas>
+                <div class="panel-sm p-2">
+                    <div class="flex justify-between items-center mb-1">
+                        <span style="font-size:9px;color:#64748B;font-weight:600;">RAM</span>
+                        <span id="kpi-ram" style="font-size:12px;font-family:'JetBrains Mono';font-weight:700;color:#6366F1;">—</span>
+                    </div>
+                    <div class="bar-track"><div id="kpi-ram-bar" class="bar-fill" style="width:0%;background:#6366F1;"></div></div>
                 </div>
             </div>
-            {% include 'components/table.html' %}
+            <div class="flex justify-between items-center mt-2 px-1">
+                <span id="kpi-ram-detail" style="font-size:8px;color:#475569;font-family:'JetBrains Mono';"></span>
+                <div class="flex items-center gap-1.5">
+                    <span style="font-size:8px;color:#64748B;font-weight:600;">NODES:</span>
+                    <span id="kpi-nodes-on" style="font-size:10px;font-family:'JetBrains Mono';font-weight:700;color:#10B981;">—</span>
+                    <span style="font-size:8px;color:#475569;">/ <span id="kpi-nodes-total">—</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CPU Trend Card -->
+        <div class="panel p-3 h-[100px]">
+            <div class="section-label mb-1">CPU Load Trend</div>
+            <div style="height:65px; width:100%;"><canvas id="cpuChart"></canvas></div>
+        </div>
+
+        <!-- RAM Trend Card -->
+        <div class="panel p-3 h-[100px]">
+            <div class="section-label mb-1">RAM Usage Trend</div>
+            <div style="height:65px; width:100%;"><canvas id="ramChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- BOTTOM SECTION: Table & DB -->
+    <div style="display:grid; grid-template-columns: 1fr 220px; gap:10px; min-height:0; flex:1;">
+        <!-- Services Table -->
+        <div class="panel flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-2 border-b flex-shrink-0" style="border-color:rgba(255,255,255,.06);">
+                <span style="font-size:10px;font-weight:700;color:#f1f5f9;letter-spacing:.06em;">SERVICE REGISTRY</span>
+                <div class="flex gap-2">
+                    <div id="svc-online-count" class="metric-chip chip-green" style="font-size:8px;">— ON</div>
+                    <div id="svc-offline-count" class="metric-chip chip-red hidden" style="font-size:8px;">— OFF</div>
+                </div>
+            </div>
+            <div class="overflow-auto flex-1 custom-scrollbar">
+                <table id="services-table" class="w-full text-left" style="border-collapse:collapse;">
+                    <thead style="position:sticky;top:0;background:#0D0F16;z-index:10;border-bottom:1px solid rgba(255,255,255,.06);">
+                        <tr>
+                            <th class="section-label px-4 py-2">Service</th>
+                            <th class="section-label px-2 py-2">Port</th>
+                            <th class="section-label px-2 py-2">PID</th>
+                            <th class="section-label px-2 py-2">CPU</th>
+                            <th class="section-label px-2 py-2">RAM</th>
+                            <th class="section-label px-2 py-2">Health</th>
+                            <th class="section-label text-right px-4 py-2">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="services-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Database Stats -->
+        <div class="panel p-3 flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between mb-2 border-b pb-1.5" style="border-color:rgba(255,255,255,.06);">
+                <div class="section-label">Database</div>
+                <div class="metric-chip chip-green" style="font-size:7px; padding:1px 4px;">LIVE</div>
+            </div>
+            <div id="db-stats-container" class="flex-1 overflow-y-auto custom-scrollbar"></div>
         </div>
     </div>
 </div>

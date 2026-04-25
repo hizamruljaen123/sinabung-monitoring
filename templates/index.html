@@ -158,105 +158,11 @@
 
         <!-- Page Container -->
         <div class="flex-1 overflow-hidden p-3">
-
-            <!-- DASHBOARD VIEW -->
-            <div id="dashboard-view" class="page-view active h-full" style="display:grid;grid-template-columns:200px 1fr;grid-template-rows:auto 1fr;gap:10px;height:100%;">
-
-                <!-- Left col: stats + db -->
-                <div style="grid-column:1;grid-row:1/3;display:flex;flex-direction:column;gap:8px;overflow-y:auto;">
-                    <!-- System KPIs -->
-                    <div class="panel p-3">
-                        <div class="section-label mb-2">System KPIs</div>
-                        <div class="flex flex-col gap-2">
-                            <div class="panel-sm p-2.5">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span style="font-size:9px;color:#64748B;font-weight:600;letter-spacing:.06em;">CPU</span>
-                                    <span id="kpi-cpu" style="font-size:14px;font-family:'JetBrains Mono';font-weight:700;color:#0EA5E9;">—</span>
-                                </div>
-                                <div class="bar-track"><div id="kpi-cpu-bar" class="bar-fill" style="width:0%;background:#0EA5E9;"></div></div>
-                            </div>
-                            <div class="panel-sm p-2.5">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span style="font-size:9px;color:#64748B;font-weight:600;letter-spacing:.06em;">RAM</span>
-                                    <span id="kpi-ram" style="font-size:14px;font-family:'JetBrains Mono';font-weight:700;color:#6366F1;">—</span>
-                                </div>
-                                <div class="bar-track"><div id="kpi-ram-bar" class="bar-fill" style="width:0%;background:#6366F1;"></div></div>
-                                <div id="kpi-ram-detail" style="font-size:8px;color:#475569;margin-top:2px;font-family:'JetBrains Mono';"></div>
-                            </div>
-                            <div class="panel-sm p-2.5 flex justify-between items-center">
-                                <span style="font-size:9px;color:#64748B;font-weight:600;letter-spacing:.06em;">NODES</span>
-                                <div class="flex items-center gap-1.5">
-                                    <span id="kpi-nodes-on" style="font-size:14px;font-family:'JetBrains Mono';font-weight:700;color:#10B981;">—</span>
-                                    <span style="font-size:9px;color:#475569;">/<span id="kpi-nodes-total">—</span></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Charts mini -->
-                    <div class="panel p-3">
-                        <div class="section-label mb-2">CPU Trend</div>
-                        <canvas id="cpuChart" height="80"></canvas>
-                    </div>
-                    <div class="panel p-3">
-                        <div class="section-label mb-2">RAM Trend</div>
-                        <canvas id="ramChart" height="80"></canvas>
-                    </div>
-
-                    <!-- DB Stats -->
-                    <div class="panel p-3 flex-1 overflow-hidden flex flex-col">
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="section-label">Database</div>
-                            <div class="metric-chip chip-green" style="font-size:8px;"><span class="status-dot online" style="width:4px;height:4px;"></span>ACTIVE</div>
-                        </div>
-                        <div id="db-stats-container" class="flex-1 overflow-y-auto" style="font-size:10px;"></div>
-                    </div>
-                </div>
-
-                <!-- Right: Services Table (full height) -->
-                <div style="grid-column:2;grid-row:1/3;" class="panel flex flex-col overflow-hidden">
-                    <div class="flex items-center justify-between px-4 py-2.5 border-b flex-shrink-0" style="border-color:rgba(255,255,255,.06);">
-                        <div class="flex items-center gap-2">
-                            <span style="font-size:11px;font-weight:700;color:#f1f5f9;letter-spacing:.06em;">SERVICE REGISTRY</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div id="svc-online-count" class="metric-chip chip-green">— ONLINE</div>
-                            <div id="svc-offline-count" class="metric-chip chip-red hidden">— OFFLINE</div>
-                        </div>
-                    </div>
-                    <div class="overflow-auto flex-1">
-                        <table id="services-table" class="w-full" style="border-collapse:collapse;min-width:600px;">
-                            <thead style="position:sticky;top:0;background:#0D0F16;z-index:10;border-bottom:1px solid rgba(255,255,255,.06);">
-                                <tr>
-                                    <th class="section-label text-left px-4 py-2">Service</th>
-                                    <th class="section-label text-left px-3 py-2">Port</th>
-                                    <th class="section-label text-left px-3 py-2">PID</th>
-                                    <th class="section-label text-left px-3 py-2">CPU</th>
-                                    <th class="section-label text-left px-3 py-2">RAM</th>
-                                    <th class="section-label text-left px-3 py-2">Health</th>
-                                    <th class="section-label text-right px-4 py-2">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="services-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CONTROL VIEW -->
-            <div id="control-view" class="page-view h-full" style="grid-template-columns:220px 1fr;gap:10px;height:100%;">
-                {% include 'components/views/control_view.html' %}
-            </div>
-
-            <!-- DATABASE VIEW -->
-            <div id="database-view" class="page-view h-full">
-                {% include 'components/views/database_view.html' %}
-            </div>
-
-            <!-- FILEMANAGER VIEW -->
-            <div id="filemanager-view" class="page-view h-full">
-                {% include 'components/views/filemanager_view.html' %}
-            </div>
+            {% include 'components/views/dashboard_view.html' %}
+            {% include 'components/views/control_view.html' %}
+            {% include 'components/views/database_view.html' %}
+            {% include 'components/views/filemanager_view.html' %}
+        </div>
 
         </div>
     </main>

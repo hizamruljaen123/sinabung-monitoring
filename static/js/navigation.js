@@ -9,14 +9,14 @@ const PAGE_TITLES = {
 function showPage(pageId) {
     // Hide all pages
     document.querySelectorAll('.page-view').forEach(p => {
-        p.style.display = 'none';
+        p.classList.add('hidden');
         p.classList.remove('active');
     });
 
     // Show active page
     const activePage = document.getElementById(pageId + '-view');
     if (activePage) {
-        activePage.style.display = (pageId === 'dashboard') ? 'grid' : 'block';
+        activePage.classList.remove('hidden');
         activePage.classList.add('active');
     }
 
