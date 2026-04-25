@@ -9,7 +9,7 @@ def get_db_connection():
     """Create and return a MySQL connection using environment variables."""
     try:
         conn = mysql.connector.connect(
-            host=os.getenv("DB_HOST", "127.0.0.1"),
+            host=os.getenv("DB_HOST", "database.asetpedia.online"),
             user=os.getenv("DB_USER", "root"),
             password=os.getenv("DB_PASSWORD", ""),
             database=os.getenv("DB_NAME", "asetpedia"),
