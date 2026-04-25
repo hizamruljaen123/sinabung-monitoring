@@ -3,7 +3,10 @@ import psutil
 from datetime import datetime
 from flask import Blueprint, jsonify, render_template, request
 from config import BE_PORTS, FE_PORTS, DEV_MODE
-from services.monitoring import get_process_info, get_error_counts, get_disk_usage, purge_all_logs
+from services.monitoring import (
+    get_process_info, get_error_counts, get_disk_usage, 
+    purge_all_logs, start_environment, stop_environment
+)
 from services.database import get_db_connection, get_table_counts, serialize_row
 
 api = Blueprint('api', __name__)
@@ -140,6 +143,23 @@ def disk_usage():
 @api.route('/api/purge-logs', methods=['POST'])
 def purge_logs_action():
     res = purge_all_logs()
+    return jsonify(res)
+
+
+# ─── Environment Management ──────────────────────────────────────────────────
+
+@api.route('/api/env/start/<env_name>', methods=['POST'])
+def env_start(env_name):
+    if env_name == "main":
+        return jsonify({"status": "error", "message": "Main environment cannot be controlled via web switch for safety."}), 403
+    res = start_environment(env_name)
+    return jsonify(res)
+
+@api.route('/api/env/stop/<env_name>', methods=['POST'])
+def env_stop(env_name):
+    if env_name == "main":
+        return jsonify({"status": "error", "message": "Main environment cannot be controlled via web switch for safety."}), 403
+    res = stop_environment(env_name)
     return jsonify(res)
 
 

@@ -106,33 +106,47 @@ def get_error_counts(port):
 
 
 def get_disk_usage():
-    """Calculate disk usage for each project in the workspace."""
+    """Calculate disk usage for each project in all environments."""
     import os
-    projects = ['mahameru-terminal-be', 'mahameru-terminal-fe', 'sinabung-monitoring', 'kerinci-maps']
-    base = os.path.join(os.path.dirname(__file__), '..', '..')
+    from config import ENVIRONMENTS
     
     stats = []
-    for p in projects:
-        path = os.path.abspath(os.path.join(base, p))
-        size = 0
+    # Base projects in the current workspace
+    base_projects = ['sinabung-monitoring', 'kerinci-maps']
+    workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    
+    # 1. Check workspace projects
+    for p in base_projects:
+        path = os.path.join(workspace_root, p)
         if os.path.exists(path):
-            for root, dirs, files in os.walk(path):
-                # Skip node_modules and .git for speed
-                if 'node_modules' in dirs: dirs.remove('node_modules')
-                if '.git' in dirs: dirs.remove('.git')
-                for f in files:
-                    fp = os.path.join(root, f)
-                    try:
-                        if not os.path.islink(fp):
-                            size += os.path.getsize(fp)
-                    except: pass
-        
-        stats.append({
-            "name": p,
-            "size": round(size / (1024 * 1024), 2), # MB
-            "path": path
-        })
+            stats.append({"name": p, "size": _get_dir_size(path), "path": path})
+
+    # 2. Check all environments
+    for env_name, cfg in ENVIRONMENTS.items():
+        for key in ["be_path", "fe_path"]:
+            path = cfg[key]
+            name = f"{env_name.upper()} {'BE' if 'be' in key else 'FE'}"
+            if os.path.exists(path):
+                # Avoid duplicates if paths overlap
+                if not any(s["path"] == path for s in stats):
+                    stats.append({"name": name, "size": _get_dir_size(path), "path": path})
+    
     return stats
+
+def _get_dir_size(path):
+    """Helper to calculate directory size in MB."""
+    import os
+    size = 0
+    for root, dirs, files in os.walk(path):
+        if 'node_modules' in dirs: dirs.remove('node_modules')
+        if '.git' in dirs: dirs.remove('.git')
+        for f in files:
+            fp = os.path.join(root, f)
+            try:
+                if not os.path.islink(fp):
+                    size += os.path.getsize(fp)
+            except: pass
+    return round(size / (1024 * 1024), 2)
 
 
 def purge_all_logs():
@@ -150,5 +164,66 @@ def purge_all_logs():
                     log.truncate(0)
                 cleared.append(f)
         return {"status": "success", "cleared": cleared}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+def start_environment(env_name):
+    """Start a specific environment (BE & FE)."""
+    from config import ENVIRONMENTS
+    import subprocess
+    import sys
+    import os
+    
+    if env_name not in ENVIRONMENTS:
+        return {"status": "error", "message": f"Environment {env_name} not found"}
+    
+    cfg = ENVIRONMENTS[env_name]
+    results = []
+    
+    try:
+        # 1. Start Backend via launcher.py
+        be_cmd = [sys.executable, "launcher.py"]
+        subprocess.Popen(be_cmd, cwd=cfg["be_path"], 
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True)
+        results.append("BE started")
+        
+        # 2. Start Frontend via npm
+        fe_cmd = f"npm run dev -- --port {cfg['fe_port']} --host 0.0.0.0"
+        subprocess.Popen(fe_cmd, cwd=cfg["fe_path"], shell=True,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True)
+        results.append("FE started")
+        
+        return {"status": "success", "message": f"{env_name.upper()} started successfully", "details": results}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+def stop_environment(env_name):
+    """Stop a specific environment by killing processes on its ports."""
+    from config import ENVIRONMENTS
+    import psutil
+    
+    if env_name not in ENVIRONMENTS:
+        return {"status": "error", "message": f"Environment {env_name} not found"}
+    
+    cfg = ENVIRONMENTS[env_name]
+    ports_to_kill = [cfg["be_port"], cfg["fe_port"]]
+    killed_count = 0
+    
+    try:
+        for port in ports_to_kill:
+            for conn in psutil.net_connections(kind='inet'):
+                if conn.laddr.port == port and conn.status == 'LISTEN' and conn.pid:
+                    try:
+                        p = psutil.Process(conn.pid)
+                        # Kill the process and its children
+                        for child in p.children(recursive=True):
+                            child.kill()
+                        p.kill()
+                        killed_count += 1
+                    except: pass
+        
+        return {"status": "success", "message": f"{env_name.upper()} stopped", "killed_count": killed_count}
     except Exception as e:
         return {"status": "error", "message": str(e)}

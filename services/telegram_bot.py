@@ -40,14 +40,23 @@ from services.bot_so_devops import (
     handle_so_status, handle_so_cpu, handle_so_ram, handle_so_disk,
     handle_so_db_stats, handle_so_logs_clear, handle_so_restart_node,
     handle_so_backup_now, handle_so_git_pull, handle_so_npm_build,
+    handle_so_env, handle_so_start_env, handle_so_stop_env
 )
 
 # ─── Help Text ────────────────────────────────────────────────────────────────
 HELP_TEXT = """
 🌋 <b>SINABUNG MONITORING — OPERATIONAL HUB</b>
 
+<b>── MULTI-ENV MANAGEMENT ──</b>
+/so_env            🌐 List Envs (Main, Staging, Dev)
+/so_status         ⚡ [env] Cluster Node Health Check
+/so_start_env      🚀 [env] Start Dev/Staging (On)
+/so_stop_env       🛑 [env] Stop Dev/Staging (Off)
+/so_restart_node   🔄 [env] [node] Restart Microservice
+/so_git_pull       📦 [env] [be/fe] Pull Latest Source
+/so_npm_build      🏗️ [env] Rebuild Frontend Assets
+
 <b>── SERVER DIAGNOSTICS ──</b>
-/so_status         ⚡ Cluster Node Health Check
 /so_cpu            📊 CPU Utilization (Logical Cores)
 /so_ram            🧠 Memory Allocation & Top Consumers
 /so_disk           💾 Storage Capacity & Project Sizes
@@ -56,12 +65,7 @@ HELP_TEXT = """
 <b>── SYSTEM CONTROL ──</b>
 /so_logs_clear     🗑️ Purge All System Logs (Free Space)
 /so_clear_history  🧹 Clear Current Bot Chat Session
-/so_restart_node   🔄 [name] Restart Microservice
 /so_backup_now     📦 Trigger Instant DB Backup
-
-<b>── REPOSITORY & BUILD ──</b>
-/so_git_pull       📦 [be/fe] Pull Latest Source
-/so_npm_build      🏗️ Rebuild Frontend Assets
 
 <b>── UTILITIES ──</b>
 /clear_message     Alias for session cleanup
@@ -86,7 +90,16 @@ def _dispatch(cmd: str, args: list, chat_id: int):
 
     # ── /so_ DevOps ──────────────────────────────────────────────────────────
     elif cmd in ("/so_status", "/so_update", "/so_get_update"):
-        handle_so_status(chat_id)
+        handle_so_status(chat_id, args)
+
+    elif cmd == "/so_env":
+        handle_so_env(chat_id)
+
+    elif cmd == "/so_start_env":
+        handle_so_start_env(chat_id, args)
+
+    elif cmd == "/so_stop_env":
+        handle_so_stop_env(chat_id, args)
 
     elif cmd == "/so_cpu":
         handle_so_cpu(chat_id)
@@ -113,7 +126,7 @@ def _dispatch(cmd: str, args: list, chat_id: int):
         handle_so_git_pull(chat_id, args)
 
     elif cmd == "/so_npm_build":
-        handle_so_npm_build(chat_id)
+        handle_so_npm_build(chat_id, args)
 
     elif cmd in ("/so_clear_history", "/clear_message"):
         handle_so_clear_history(chat_id)

@@ -16,6 +16,38 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 RAM_ALERT_THRESHOLD = int(os.getenv("RAM_ALERT_THRESHOLD", "1500"))  # Threshold in MB
 CPU_COUNT = psutil.cpu_count() or 1
 
+# ─── Multi-Environment Configuration ──────────────────────────────────────────
+# Based on ENVIRONMENT_SPEC.txt
+ENVIRONMENTS = {
+    "dev": {
+        "be_path": "/home/project/dev/mahameru-terminal-be",
+        "fe_path": "/home/project/dev/mahameru-terminal-fe",
+        "be_port": 5001,
+        "fe_port": 3001,
+        "be_domain": "api-dev.asetpedia.online",
+        "fe_domain": "terminal-dev.asetpedia.online",
+        "db": "asetpedia_dev"
+    },
+    "staging": {
+        "be_path": "/home/project/staging/mahameru-terminal-be",
+        "fe_path": "/home/project/staging/mahameru-terminal-fe",
+        "be_port": 5002,
+        "fe_port": 3002,
+        "be_domain": "api-staging.asetpedia.online",
+        "fe_domain": "terminal-staging.asetpedia.online",
+        "db": "asetpedia_staging"
+    },
+    "main": {
+        "be_path": os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'mahameru-terminal-be')),
+        "fe_path": os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'mahameru-terminal-fe')),
+        "be_port": 8000, # Dashboard API
+        "fe_port": 5151,
+        "be_domain": "api.asetpedia.online",
+        "fe_domain": "terminal.asetpedia.online",
+        "db": "asetpedia"
+    }
+}
+
 # ─── File Manager Config ─────────────────────────────────────────────────────
 # Root directory the file manager can access. Change to '/' for full server access.
 FM_ROOT_PATH = os.getenv("FM_ROOT_PATH", os.path.expanduser("~"))

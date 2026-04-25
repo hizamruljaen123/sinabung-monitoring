@@ -107,6 +107,32 @@ async function clearLogs(appId) {
     terminal.scrollTop = terminal.scrollHeight;
 }
 
+// --- Environment Toggle Logic ---
+async function toggleEnv(env, action) {
+    const terminal = document.getElementById('terminal-content');
+    const actionLabel = action === 'start' ? 'INITIALIZING' : 'SHUTTING_DOWN';
+    terminal.innerHTML += `\n\n<span class="text-primary font-bold">>>> ${actionLabel} ENVIRONMENT: [${env.toUpperCase()}]...</span>\n`;
+    terminal.scrollTop = terminal.scrollHeight;
+
+    try {
+        const resp = await fetch(`/api/env/${action}/${env}`, { method: 'POST' });
+        const data = await resp.json();
+        const colorClass = data.status === 'success' ? 'text-success' : 'text-accent';
+        
+        if (data.status === 'success') {
+            terminal.innerHTML += `<div class="${colorClass} mt-2 bg-white/5 p-3 rounded-lg border border-white/5 font-bold">✅ ${data.message}</div>`;
+            if (data.killed_count !== undefined) {
+                terminal.innerHTML += `<div class="text-slate-500 text-[10px] ml-4">Processes terminated: ${data.killed_count}</div>`;
+            }
+        } else {
+            terminal.innerHTML += `<div class="${colorClass} mt-2 bg-rose-500/10 p-3 rounded-lg border border-rose-500/20 font-bold">❌ ERROR: ${data.message}</div>`;
+        }
+    } catch (err) {
+        terminal.innerHTML += `<div class="text-accent mt-2">FATAL: Environment control command failed.</div>`;
+    }
+    terminal.scrollTop = terminal.scrollHeight;
+}
+
 // --- Log Streaming Logic ---
 function startLogStream(appId) {
     if (currentAppId === appId) return;
