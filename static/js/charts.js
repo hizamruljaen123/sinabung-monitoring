@@ -1,233 +1,162 @@
 // ─── Chart Configuration & Stats Polling ──────────────────────────────────
-const MAX_DATA_POINTS = 40;
-let chartLabels = [];
-let cpuData = [];
-let ramData = [];
+const MAX_DATA_POINTS = 60;
+let chartLabels = [], cpuData = [], ramData = [];
 
-function getChartConfig(isDark) {
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)';
-    const textColor = isDark ? '#64748B' : '#94A3B8';
-
+function getChartOpts() {
     return {
-        responsive: true,
-        maintainAspectRatio: false,
+        responsive: true, maintainAspectRatio: false,
         scales: {
-            x: { display: true, grid: { display: false }, ticks: { display: false } },
-            y: {
-                beginAtZero: true,
-                max: 100,
-                grid: { color: gridColor, drawBorder: false },
-                ticks: {
-                    color: textColor,
-                    font: { size: 10, family: 'JetBrains Mono', weight: '500' },
-                    padding: 10,
-                    callback: value => value + '%'
-                }
-            }
+            x: { display: false },
+            y: { display: false, beginAtZero: true, max: 100 }
         },
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
-                titleColor: isDark ? '#F1F5F9' : '#0F172A',
-                bodyColor: isDark ? '#F1F5F9' : '#0F172A',
-                padding: 12,
-                cornerRadius: 12,
-                displayColors: false,
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-            }
-        },
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
         elements: {
-            line: { tension: 0.4, borderWidth: 3, capStyle: 'round' },
-            point: { radius: 0, hoverRadius: 6, hitRadius: 10 }
+            line: { tension: 0.4, borderWidth: 1.5, capStyle: 'round' },
+            point: { radius: 0 }
         },
-        interaction: { intersect: false, mode: 'index' }
+        animation: false
     };
 }
 
-const ctxCpu = document.getElementById('cpuChart').getContext('2d');
-const ctxRam = document.getElementById('ramChart').getContext('2d');
+const ctxCpu = document.getElementById('cpuChart')?.getContext('2d');
+const ctxRam = document.getElementById('ramChart')?.getContext('2d');
+let cpuChart, ramChart;
 
-const cpuGradient = ctxCpu.createLinearGradient(0, 0, 0, 200);
-cpuGradient.addColorStop(0, 'rgba(14, 165, 233, 0.2)');
-cpuGradient.addColorStop(1, 'rgba(14, 165, 233, 0)');
-
-const ramGradient = ctxRam.createLinearGradient(0, 0, 0, 200);
-ramGradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)');
-ramGradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
-
-const isDarkInitial = document.documentElement.classList.contains('dark');
-
-const cpuChart = new Chart(ctxCpu, {
-    type: 'line',
-    data: { labels: chartLabels, datasets: [{ label: 'CPU Load', data: cpuData, borderColor: '#0EA5E9', backgroundColor: cpuGradient, fill: true }] },
-    options: { ...getChartConfig(isDarkInitial), plugins: { ...getChartConfig(isDarkInitial).plugins, title: { display: true, text: 'CORE PROCESSOR LOAD', align: 'start', color: isDarkInitial ? '#F1F5F9' : '#0F172A', font: { family: 'Outfit', size: 14, weight: '700' }, padding: { bottom: 20 } } } }
-});
-
-const ramChart = new Chart(ctxRam, {
-    type: 'line',
-    data: { labels: chartLabels, datasets: [{ label: 'RAM Usage', data: ramData, borderColor: '#6366F1', backgroundColor: ramGradient, fill: true }] },
-    options: { ...getChartConfig(isDarkInitial), plugins: { ...getChartConfig(isDarkInitial).plugins, title: { display: true, text: 'GLOBAL MEMORY POOL', align: 'start', color: isDarkInitial ? '#F1F5F9' : '#0F172A', font: { family: 'Outfit', size: 14, weight: '700' }, padding: { bottom: 20 } } } }
-});
-
-function updateChartColors(isDark) {
-    const options = getChartConfig(isDark);
-    const titleColor = isDark ? '#F1F5F9' : '#0F172A';
-
-    cpuChart.options = { ...options, plugins: { ...options.plugins, title: { display: true, text: 'CORE PROCESSOR LOAD', align: 'start', color: titleColor, font: { family: 'Outfit', size: 14, weight: '700' }, padding: { bottom: 20 } } } };
-    ramChart.options = { ...options, plugins: { ...options.plugins, title: { display: true, text: 'GLOBAL MEMORY POOL', align: 'start', color: titleColor, font: { family: 'Outfit', size: 14, weight: '700' }, padding: { bottom: 20 } } } };
-
-    cpuChart.update();
-    ramChart.update();
+if (ctxCpu) {
+    const cpuGrad = ctxCpu.createLinearGradient(0, 0, 0, 80);
+    cpuGrad.addColorStop(0, 'rgba(14,165,233,0.3)');
+    cpuGrad.addColorStop(1, 'rgba(14,165,233,0)');
+    cpuChart = new Chart(ctxCpu, {
+        type: 'line',
+        data: { labels: chartLabels, datasets: [{ data: cpuData, borderColor: '#0EA5E9', backgroundColor: cpuGrad, fill: true }] },
+        options: getChartOpts()
+    });
 }
 
-// ─── Helper functions ────────────────────────────────────────────────────
-
-function getColor(name) {
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#000";
+if (ctxRam) {
+    const ramGrad = ctxRam.createLinearGradient(0, 0, 0, 80);
+    ramGrad.addColorStop(0, 'rgba(99,102,241,0.3)');
+    ramGrad.addColorStop(1, 'rgba(99,102,241,0)');
+    ramChart = new Chart(ctxRam, {
+        type: 'line',
+        data: { labels: chartLabels, datasets: [{ data: ramData, borderColor: '#6366F1', backgroundColor: ramGrad, fill: true }] },
+        options: getChartOpts()
+    });
 }
 
-function getHeatmapColor(value, max) {
-    const ratio = Math.min(value / max, 1);
-    if (ratio < 0.4) return getColor("--success");
-    if (ratio < 0.75) return getColor("--warning");
-    return getColor("--accent");
+function heatColor(val, max) {
+    const r = Math.min(val / max, 1);
+    if (r < 0.4) return '#10B981';
+    if (r < 0.75) return '#F59E0B';
+    return '#F43F5E';
 }
-
-// ─── Stats Polling ──────────────────────────────────────────────────────────
 
 async function fetchStats() {
     try {
-        const response = await fetch('/api/stats');
-        const data = await response.json();
+        const data = await fetch('/api/stats').then(r => r.json());
 
-        document.getElementById('last-update').innerText = `SYNCHRONIZED: ${data.time}`;
+        // Header bar
+        const onlineCount = data.services.filter(s => s.status === 'ONLINE').length;
+        const totalCount = data.services.length;
+        document.getElementById('last-update')?.setText?.(`${data.time}`) || (document.getElementById('last-update') && (document.getElementById('last-update').innerText = data.time));
+        document.getElementById('header-cpu') && (document.getElementById('header-cpu').innerText = `CPU ${data.total_cpu}%`);
+        document.getElementById('header-ram') && (document.getElementById('header-ram').innerText = `RAM ${data.ram_percent}%`);
+        document.getElementById('header-nodes') && (document.getElementById('header-nodes').innerText = `${onlineCount}/${totalCount} UP`);
 
-        // Metrics Cards
-        const active = data.services.filter(s => s.status === 'ONLINE').length;
-        const total = data.services.length;
-
-        document.getElementById('metrics-container').innerHTML = `
-            <div class="grid grid-cols-1 gap-4">
-                <div class="stat-card p-5 group">
-                    <div class="flex justify-between items-center mb-3">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CPU UTILIZATION</p>
-                        <span class="text-[9px] font-bold text-primary bg-primary/5 border border-primary/10 px-1.5 py-0.5 rounded">REAL-TIME</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <h3 class="text-2xl font-bold font-mono text-slate-800 dark:text-white">${data.total_cpu}%</h3>
-                        <div class="w-1.5 h-1.5 rounded-full bg-success"></div>
-                    </div>
-                </div>
-
-                <div class="stat-card p-5 group">
-                    <div class="flex justify-between items-center mb-3">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">MEMORY ALLOCATION</p>
-                        <span class="text-[9px] font-bold text-secondary bg-secondary/5 border border-secondary/10 px-1.5 py-0.5 rounded">${data.ram_percent}%</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <h3 class="text-2xl font-bold font-mono text-slate-800 dark:text-white">${data.total_ram}</h3>
-                        <span class="text-[10px] text-slate-400 font-bold tracking-tighter uppercase">GB / ${data.total_ram_capacity} GB</span>
-                    </div>
-                </div>
-
-                <div class="stat-card p-5 group">
-                    <div class="flex justify-between items-center mb-3">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ACTIVE CLUSTER NODES</p>
-                        <span class="text-[9px] font-bold text-success bg-success/5 border border-success/10 px-1.5 py-0.5 rounded">OPTIMAL</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <h3 class="text-2xl font-bold font-mono text-slate-800 dark:text-white">${active}</h3>
-                        <span class="text-[10px] text-slate-400 font-bold tracking-tighter uppercase">NODES / ${total} ONLINE</span>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Database Stats
-        let dbHtml = '';
-        for (const [table, count] of Object.entries(data.db_counts)) {
-            const formattedCount = count === -1 ? 'OFFLINE' : count.toLocaleString();
-            dbHtml += `
-                <div class="flex items-center justify-between px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-all group cursor-default border-b border-slate-50 dark:border-white/[0.02] last:border-0">
-                    <div class="flex items-center gap-2">
-                        <div class="w-1 h-1 rounded-full ${count === -1 ? 'bg-accent' : 'bg-primary/30'}"></div>
-                        <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">${table.replace(/_/g, ' ')}</span>
-                    </div>
-                    <span class="font-mono text-[11px] font-bold text-slate-700 dark:text-slate-200">${formattedCount}</span>
-                </div>
-            `;
+        // KPI Cards
+        const cpuEl = document.getElementById('kpi-cpu');
+        if (cpuEl) {
+            cpuEl.innerText = data.total_cpu + '%';
+            const cpuBar = document.getElementById('kpi-cpu-bar');
+            if (cpuBar) { cpuBar.style.width = data.total_cpu + '%'; cpuBar.style.background = heatColor(data.total_cpu, 100); }
         }
-        document.getElementById('db-stats-container').innerHTML = dbHtml;
+        const ramEl = document.getElementById('kpi-ram');
+        if (ramEl) {
+            ramEl.innerText = data.ram_percent + '%';
+            const ramBar = document.getElementById('kpi-ram-bar');
+            if (ramBar) { ramBar.style.width = data.ram_percent + '%'; ramBar.style.background = heatColor(data.ram_percent, 100); }
+            const ramDet = document.getElementById('kpi-ram-detail');
+            if (ramDet) ramDet.innerText = `${data.total_ram} / ${data.total_ram_capacity} GB`;
+        }
+        const nodesOn = document.getElementById('kpi-nodes-on');
+        if (nodesOn) nodesOn.innerText = onlineCount;
+        const nodesTotal = document.getElementById('kpi-nodes-total');
+        if (nodesTotal) nodesTotal.innerText = totalCount;
+
+        // Service counts
+        const svcOn = document.getElementById('svc-online-count');
+        if (svcOn) svcOn.innerText = `${onlineCount} ONLINE`;
+        const svcOff = document.getElementById('svc-offline-count');
+        if (svcOff) {
+            const offCount = totalCount - onlineCount;
+            svcOff.innerText = `${offCount} OFFLINE`;
+            svcOff.classList.toggle('hidden', offCount === 0);
+        }
+
+        // DB Stats
+        const dbCont = document.getElementById('db-stats-container');
+        if (dbCont) {
+            dbCont.innerHTML = Object.entries(data.db_counts).map(([t, c]) => {
+                const val = c === -1 ? '<span style="color:#F43F5E">OFFLINE</span>' : `<span style="font-family:\'JetBrains Mono\';color:#94a3b8">${c.toLocaleString()}</span>`;
+                return `<div class="tbl-row" style="display:flex;justify-content:space-between;align-items:center;padding:4px 4px;font-size:9px;">
+                    <span style="color:#64748B;text-transform:uppercase;letter-spacing:.04em;">${t.replace(/_/g,' ')}</span>
+                    ${val}
+                </div>`;
+            }).join('');
+        }
 
         // Services Table
-        const sortedServices = [...data.services].sort((a, b) => {
-            if (b.errors !== a.errors) return b.errors - a.errors;
-            if (b.cpu !== a.cpu) return b.cpu - a.cpu;
-            return b.ram - a.ram;
-        });
-
-        const tbody = document.querySelector('#services-table tbody');
-        tbody.innerHTML = '';
-
-        sortedServices.forEach((svc) => {
-            const cpuColor = getHeatmapColor(svc.cpu, 100);
-            const ramColor = getHeatmapColor(svc.ram, 2048);
-
-            const tr = document.createElement('tr');
-            tr.className = `group hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors duration-150 ${svc.status === 'OFFLINE' ? 'opacity-40' : ''}`;
-            tr.innerHTML = `
-                <td class="px-6 py-3.5"><span class="font-bold text-slate-700 dark:text-slate-200 text-xs tracking-tight uppercase">${svc.name}</span></td>
-                <td class="px-4 py-3.5"><span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold">${svc.port}</span></td>
-                <td class="px-4 py-3.5 font-mono text-[10px] text-slate-400 uppercase tracking-tighter">${svc.pid}</td>
-                <td class="px-4 py-3.5">
-                    <div class="flex items-center gap-2">
-                        <div class="w-12 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full transition-all duration-700" style="width: ${Math.min(svc.cpu, 100)}%; background: ${cpuColor}"></div>
+        const tbody = document.getElementById('services-tbody');
+        if (tbody) {
+            const sorted = [...data.services].sort((a,b) => {
+                if (a.status !== b.status) return a.status === 'ONLINE' ? -1 : 1;
+                return b.ram - a.ram;
+            });
+            tbody.innerHTML = sorted.map(svc => {
+                const cpuC = heatColor(svc.cpu, 100);
+                const ramC = heatColor(svc.ram, 2048);
+                const cpuW = Math.min(svc.cpu, 100);
+                const ramW = Math.min((svc.ram/2048)*100, 100);
+                const statusHtml = svc.status === 'ONLINE'
+                    ? `<span class="metric-chip chip-green"><span class="status-dot online" style="width:4px;height:4px;"></span>LIVE</span>`
+                    : `<span class="metric-chip chip-slate">OFFLINE</span>`;
+                const errHtml = svc.errors > 0
+                    ? `<span class="metric-chip chip-red">${svc.errors} ERR</span>`
+                    : `<span style="font-size:9px;color:#374151;">—</span>`;
+                return `<tr class="tbl-row ${svc.status==='OFFLINE'?'opacity-30':''}">
+                    <td style="padding:5px 14px;font-size:10px;font-weight:600;color:#cbd5e1;text-transform:uppercase;letter-spacing:.04em;">${svc.name}</td>
+                    <td style="padding:5px 10px;"><span style="font-family:\'JetBrains Mono\';font-size:9px;color:#475569;">${svc.port}</span></td>
+                    <td style="padding:5px 10px;"><span style="font-family:\'JetBrains Mono\';font-size:9px;color:#374151;">${svc.pid}</span></td>
+                    <td style="padding:5px 10px;min-width:80px;">
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <div class="bar-track" style="width:48px;"><div class="bar-fill" style="width:${cpuW}%;background:${cpuC};"></div></div>
+                            <span style="font-family:\'JetBrains Mono\';font-size:9px;color:${cpuC};min-width:28px;">${svc.cpu}%</span>
                         </div>
-                        <span class="font-mono text-[10px] font-bold text-slate-600 dark:text-slate-400">${svc.cpu}%</span>
-                    </div>
-                </td>
-                <td class="px-4 py-3.5">
-                    <div class="flex items-center gap-2">
-                        <div class="w-12 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full transition-all duration-700" style="width: ${Math.min((svc.ram / 2048) * 100, 100)}%; background: ${ramColor}"></div>
+                    </td>
+                    <td style="padding:5px 10px;min-width:100px;">
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <div class="bar-track" style="width:48px;"><div class="bar-fill" style="width:${ramW}%;background:${ramC};"></div></div>
+                            <span style="font-family:\'JetBrains Mono\';font-size:9px;color:${ramC};min-width:40px;">${svc.ram}MB</span>
                         </div>
-                        <span class="font-mono text-[10px] font-bold text-slate-600 dark:text-slate-400">${svc.ram}MB</span>
-                    </div>
-                </td>
-                <td class="px-4 py-3.5">
-                    ${svc.errors > 0
-                        ? `<span class="text-accent font-bold text-[9px] uppercase tracking-wider flex items-center gap-1"><div class="w-1 h-1 rounded-full bg-accent animate-pulse"></div> ${svc.errors} ERR</span>`
-                        : `<span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider">Optimal</span>`}
-                </td>
-                <td class="px-6 py-3.5 text-right">
-                    <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-transparent ${svc.status === 'ONLINE' ? 'bg-success/5 text-success border-success/10' : 'bg-slate-100 dark:bg-white/5 text-slate-400'}">
-                        <div class="w-1 h-1 rounded-full ${svc.status === 'ONLINE' ? 'bg-success' : 'bg-slate-400'}"></div>
-                        <span class="text-[9px] font-bold uppercase tracking-widest">${svc.status}</span>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+                    </td>
+                    <td style="padding:5px 10px;">${errHtml}</td>
+                    <td style="padding:5px 14px;text-align:right;">${statusHtml}</td>
+                </tr>`;
+            }).join('');
+        }
 
-        // Update Charts
+        // Charts
         chartLabels.push(data.time);
         cpuData.push(data.total_cpu);
         ramData.push(data.ram_percent);
+        if (chartLabels.length > MAX_DATA_POINTS) { chartLabels.shift(); cpuData.shift(); ramData.shift(); }
+        cpuChart?.update('none');
+        ramChart?.update('none');
 
-        if (chartLabels.length > MAX_DATA_POINTS) {
-            chartLabels.shift(); cpuData.shift(); ramData.shift();
-        }
-
-        cpuChart.update('none');
-        ramChart.update('none');
-
-    } catch (error) {
-        console.error('Monitoring Sync Error:', error);
-        document.getElementById('status-pulse').className = 'status-dot bg-accent';
-        document.getElementById('last-update').innerText = 'CONNECTION LOST';
+    } catch (e) {
+        console.error('Stats fetch error:', e);
+        const lu = document.getElementById('last-update');
+        if (lu) lu.innerText = 'CONNECTION LOST';
     }
 }
 

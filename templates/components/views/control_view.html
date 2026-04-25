@@ -1,143 +1,123 @@
-<!-- Server Control View -->
-<div id="control-view" class="page-view hidden flex flex-col gap-8 animate-fade-in">
-    <div class="grid grid-cols-1 xl:grid-cols-[300px_1fr] gap-8">
-        <!-- Controls Sidebar -->
-        <div class="flex flex-col gap-6">
-            <!-- Target Selector -->
-            <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Select Target</h3>
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="target-be" onclick="setTarget('be')" class="target-btn px-4 py-2 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 rounded-xl font-bold text-xs transition">BACKEND</button>
-                    <button id="target-fe" onclick="setTarget('fe')" class="target-btn px-4 py-2 bg-primary text-white rounded-xl font-bold text-xs transition">FRONTEND</button>
-                </div>
-            </div>
+<!-- Control View — Compact High-Density Layout -->
+<div style="display:grid;grid-template-columns:220px 1fr;gap:10px;height:100%;width:100%;">
 
-            <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Git & Dependencies</h3>
-                <div class="flex flex-col gap-3">
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="runGit('pull')" class="flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-xl font-bold text-[10px] hover:opacity-90 transition shadow-lg shadow-primary/20">GIT PULL</button>
-                        <button onclick="runGit('stash')" class="flex items-center justify-center gap-2 py-3 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 rounded-xl font-bold text-[10px] border border-slate-200 dark:border-white/10 hover:bg-slate-200 transition">GIT STASH</button>
-                    </div>
-                    <button onclick="runAction('npm-install')" class="flex items-center justify-center gap-2 w-full py-3 bg-amber-500/10 text-amber-500 rounded-xl font-bold text-[10px] border border-amber-500/20 hover:bg-amber-500 hover:text-white transition">NPM INSTALL</button>
-                    <button onclick="runAction('build')" class="flex items-center justify-center gap-2 w-full py-3 bg-blue-500/10 text-blue-500 rounded-xl font-bold text-[10px] border border-blue-500/20 hover:bg-blue-500 hover:text-white transition">BUILD PROJECT</button>
-                </div>
-            </div>
+    <!-- Left Sidebar Controls -->
+    <div style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;">
 
-            <!-- Environment ON/OFF Switches -->
-            <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Environment Power</h3>
-                <div class="flex flex-col gap-4">
-                    <!-- Dev Environment -->
-                    <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                        <div class="flex flex-col">
-                            <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300">DEVELOPMENT</span>
-                            <span class="text-[8px] text-slate-500 font-mono">PORT: 3001/5001</span>
-                        </div>
-                        <div class="flex gap-1.5">
-                            <button onclick="toggleEnv('dev', 'stop')" class="p-2 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                            <button onclick="toggleEnv('dev', 'start')" class="p-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Staging Environment -->
-                    <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                        <div class="flex flex-col">
-                            <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300">STAGING</span>
-                            <span class="text-[8px] text-slate-500 font-mono">PORT: 3002/5002</span>
-                        </div>
-                        <div class="flex gap-1.5">
-                            <button onclick="toggleEnv('staging', 'stop')" class="p-2 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                            <button onclick="toggleEnv('staging', 'start')" class="p-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Process Management (Adaptive) -->
-            <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Service Control</h3>
-                
-                <!-- Backend Controls -->
-                <div id="process-info-be" class="process-info flex flex-col gap-4">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded">BACKEND CORE</span>
-                        <span class="text-[9px] font-mono text-slate-400">ID: 0</span>
-                    </div>
-                    <div class="grid grid-cols-1 gap-2">
-                        <button onclick="pm2Reload(0)" class="flex items-center justify-center gap-2 py-3 bg-emerald-500/10 text-emerald-500 rounded-xl font-bold text-xs border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition">
-                            RELOAD SERVICE
-                        </button>
-                        <button onclick="clearLogs(0)" class="py-2.5 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-xl font-bold text-[10px] border border-slate-200 dark:border-white/10 hover:bg-slate-200 transition">
-                            FLUSH LOG BUFFER
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Frontend Controls -->
-                <div id="process-info-fe" class="process-info hidden flex flex-col gap-4">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-bold text-blue-500 bg-blue-500/5 px-2 py-0.5 rounded">FRONTEND UI</span>
-                        <span class="text-[9px] font-mono text-slate-400">ID: 1</span>
-                    </div>
-                    <div class="grid grid-cols-1 gap-2">
-                        <button onclick="pm2Reload(1)" class="flex items-center justify-center gap-2 py-3 bg-blue-500/10 text-blue-500 rounded-xl font-bold text-xs border border-blue-500/20 hover:bg-blue-500 hover:text-white transition">
-                            RELOAD SERVICE
-                        </button>
-                        <button onclick="clearLogs(1)" class="py-2.5 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-xl font-bold text-[10px] border border-slate-200 dark:border-white/10 hover:bg-slate-200 transition">
-                            FLUSH LOG BUFFER
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Log Stream Header -->
-            <div class="bg-white dark:bg-[#0A0D14] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Live Stream</h3>
-                    <div class="flex items-center gap-1.5">
-                        <div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
-                        <span id="active-log-label" class="text-[9px] font-bold text-primary uppercase">FE_LOGS</span>
-                    </div>
-                </div>
-                <p class="text-[10px] text-slate-500 leading-relaxed">Streaming real-time logs from the selected target above into the terminal buffer.</p>
+        <!-- Target Selector -->
+        <div class="panel p-3">
+            <div class="section-label mb-2">Target</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                <button id="target-be" onclick="setTarget('be')" class="btn-action btn-ghost" style="justify-content:center;display:flex;">BACKEND</button>
+                <button id="target-fe" onclick="setTarget('fe')" class="btn-action btn-primary" style="justify-content:center;display:flex;">FRONTEND</button>
             </div>
         </div>
 
-        <!-- Terminal View -->
-        <div class="flex flex-col gap-4">
-            <div class="bg-[#05070A] rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col h-[700px]">
-                <div class="px-6 py-3 bg-slate-900/50 border-b border-slate-800 flex justify-between items-center">
-                    <div class="flex items-center gap-2">
-                        <div class="flex gap-1.5">
-                            <div class="w-2.5 h-2.5 rounded-full bg-rose-500/50"></div>
-                            <div class="w-2.5 h-2.5 rounded-full bg-amber-500/50"></div>
-                            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/50"></div>
-                        </div>
-                        <span class="text-[10px] font-mono text-slate-500 uppercase ml-4 tracking-widest">Sinabung_Terminal_v4.0</span>
+        <!-- Env Power -->
+        <div class="panel p-3">
+            <div class="section-label mb-2">Environment Power</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <!-- DEV -->
+                <div class="panel-sm p-2 flex items-center justify-between">
+                    <div>
+                        <div style="font-size:10px;font-weight:700;color:#e2e8f0;">DEV</div>
+                        <div style="font-size:8px;font-family:'JetBrains Mono';color:#475569;">:3001 / :5001</div>
                     </div>
-                    <button onclick="clearTerminal()" class="text-[10px] font-bold text-slate-500 hover:text-white transition">CLEAR_BUFFER</button>
+                    <div style="display:flex;gap:4px;">
+                        <button onclick="toggleEnv('dev','stop')" class="env-btn env-btn-stop">■ OFF</button>
+                        <button onclick="toggleEnv('dev','start')" class="env-btn env-btn-start">▶ ON</button>
+                    </div>
                 </div>
-                <div id="terminal-content" class="flex-grow p-6 font-mono text-xs text-slate-300 overflow-y-auto custom-scrollbar whitespace-pre-wrap leading-relaxed">
-                    <div class="text-primary opacity-50 mb-4 tracking-tighter">SINABUNG_SHELL // INITIALIZING_STREAM...</div>
+                <!-- STAGING -->
+                <div class="panel-sm p-2 flex items-center justify-between">
+                    <div>
+                        <div style="font-size:10px;font-weight:700;color:#e2e8f0;">STAGING</div>
+                        <div style="font-size:8px;font-family:'JetBrains Mono';color:#475569;">:3002 / :5002</div>
+                    </div>
+                    <div style="display:flex;gap:4px;">
+                        <button onclick="toggleEnv('staging','stop')" class="env-btn env-btn-stop">■ OFF</button>
+                        <button onclick="toggleEnv('staging','start')" class="env-btn env-btn-start">▶ ON</button>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Git & Build -->
+        <div class="panel p-3">
+            <div class="section-label mb-2">Git & Build</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                    <button onclick="runGit('pull')" class="btn-action btn-primary">GIT PULL</button>
+                    <button onclick="runGit('stash')" class="btn-action btn-ghost">GIT STASH</button>
+                </div>
+                <button onclick="runAction('npm-install')" class="btn-action btn-amber">NPM INSTALL</button>
+                <button onclick="runAction('build')" class="btn-action btn-ghost">BUILD PROJECT</button>
+            </div>
+        </div>
+
+        <!-- Service Control -->
+        <div class="panel p-3">
+            <div class="section-label mb-2">Service Control</div>
+            <div id="process-info-be" class="process-info" style="display:flex;flex-direction:column;gap:4px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span class="metric-chip chip-blue">BACKEND CORE</span>
+                    <span style="font-size:8px;font-family:'JetBrains Mono';color:#475569;">ID:0</span>
+                </div>
+                <button onclick="pm2Reload(0)" class="btn-action" style="background:rgba(16,185,129,.1);color:#10B981;border:1px solid rgba(16,185,129,.2);">RELOAD SERVICE</button>
+                <button onclick="clearLogs(0)" class="btn-action btn-ghost">FLUSH LOGS</button>
+            </div>
+            <div id="process-info-fe" class="process-info hidden" style="display:none;flex-direction:column;gap:4px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span class="metric-chip chip-slate">FRONTEND UI</span>
+                    <span style="font-size:8px;font-family:'JetBrains Mono';color:#475569;">ID:1</span>
+                </div>
+                <button onclick="pm2Reload(1)" class="btn-action btn-primary">RELOAD SERVICE</button>
+                <button onclick="clearLogs(1)" class="btn-action btn-ghost">FLUSH LOGS</button>
+            </div>
+        </div>
+
+        <!-- Log Stream Info -->
+        <div class="panel p-3">
+            <div class="flex items-center justify-between mb-1">
+                <div class="section-label">Live Stream</div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                    <span class="status-dot online pulse" style="width:5px;height:5px;"></span>
+                    <span id="active-log-label" style="font-size:8px;font-weight:700;color:#0EA5E9;letter-spacing:.1em;">FE_LOGS</span>
+                </div>
+            </div>
+            <p style="font-size:9px;color:#475569;line-height:1.5;">Streaming real-time logs from selected target into terminal buffer.</p>
+        </div>
+
+        <!-- Purge Logs -->
+        <button onclick="fetch('/api/purge-logs',{method:'POST'}).then(()=>logToTerminal('✓ All logs purged','success'))" class="btn-action btn-danger w-full">
+            ⚠ PURGE ALL LOGS
+        </button>
+    </div>
+
+    <!-- Terminal -->
+    <div class="panel flex flex-col overflow-hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;background:#060810;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <div style="display:flex;gap:5px;">
+                    <div style="width:10px;height:10px;border-radius:50%;background:rgba(244,63,94,.4);"></div>
+                    <div style="width:10px;height:10px;border-radius:50%;background:rgba(245,158,11,.4);"></div>
+                    <div style="width:10px;height:10px;border-radius:50%;background:rgba(16,185,129,.4);"></div>
+                </div>
+                <span style="font-size:9px;font-family:'JetBrains Mono';color:#475569;letter-spacing:.1em;">SINABUNG_TERMINAL_v5.0</span>
+            </div>
+            <button onclick="clearTerminal()" style="font-size:9px;font-weight:700;color:#475569;letter-spacing:.08em;cursor:pointer;padding:2px 6px;border-radius:3px;border:1px solid rgba(255,255,255,.08);">CLEAR</button>
+        </div>
+        <div id="terminal-content" style="flex:1;overflow-y:auto;padding:12px;font-family:'JetBrains Mono';font-size:10px;color:#94a3b8;line-height:1.7;background:#060810;white-space:pre-wrap;">
+            <span style="color:#0EA5E9;opacity:.6;">SINABUNG_SHELL // STREAM_READY...</span>
         </div>
     </div>
 </div>
+
+<script>
+function logToTerminal(msg, type='info') {
+    const t = document.getElementById('terminal-content');
+    const colors = { success:'#10B981', error:'#F43F5E', warn:'#F59E0B', info:'#0EA5E9' };
+    t.innerHTML += `\n<span style="color:${colors[type]||colors.info}">${msg}</span>`;
+    t.scrollTop = t.scrollHeight;
+}
+</script>

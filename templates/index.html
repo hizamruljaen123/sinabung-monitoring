@@ -3,176 +3,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SINABUNG | PROFESSIONAL MONITORING</title>
-    
-    <!-- Theme Preload Script (must run before body renders) -->
+    <title>SINABUNG | OPS CENTER</title>
     <script>
-        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
+        if (localStorage.getItem('color-theme') === 'light') {
+            document.documentElement.classList.remove('dark');
         } else {
-            document.documentElement.classList.remove('dark')
+            document.documentElement.classList.add('dark');
         }
     </script>
-    
-    <!-- External Dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-    <!-- Tailwind Config -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         darkMode: 'class',
-        theme: {
-          extend: {
+        theme: { extend: {
             colors: {
-              mainbgDark: '#07090F',
-              mainbgLight: '#F1F5F9',
-              glassbgDark: 'rgba(13, 17, 28, 0.75)',
-              glassbgLight: 'rgba(255, 255, 255, 0.85)',
-              borderDark: 'rgba(255, 255, 255, 0.08)',
-              borderLight: 'rgba(0, 0, 0, 0.08)',
-              primary: '#0EA5E9',
-              secondary: '#6366F1',
-              accent: '#F43F5E',
-              success: '#10B981',
-              warning: '#F59E0B'
+              bg: '#08090D', panel: '#0D0F16', border: 'rgba(255,255,255,0.06)',
+              primary: '#0EA5E9', success: '#10B981', warning: '#F59E0B',
+              danger: '#F43F5E', secondary: '#6366F1',
             },
-            fontFamily: {
-              outfit: ['Outfit', 'sans-serif'],
-              inter: ['Inter', 'sans-serif'],
-              mono: ['JetBrains Mono', 'monospace'],
-            },
-            animation: {
-              'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'glow': 'glow 2s ease-in-out infinite alternate',
-              'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-              'fade-in': 'fadeIn 0.4s ease-out forwards',
-            },
-            keyframes: {
-              glow: {
-                '0%': { boxShadow: '0 0 5px rgba(14, 165, 233, 0.2), 0 0 10px rgba(14, 165, 233, 0.1)' },
-                '100%': { boxShadow: '0 0 15px rgba(14, 165, 233, 0.5), 0 0 25px rgba(14, 165, 233, 0.3)' },
-              },
-              slideUp: {
-                '0%': { transform: 'translateY(20px)', opacity: '0' },
-                '100%': { transform: 'translateY(0)', opacity: '1' },
-              },
-              fadeIn: {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' },
-              }
-            }
-          }
-        }
+            fontFamily: { mono: ['JetBrains Mono', 'monospace'], sans: ['Inter', 'sans-serif'] }
+        }}
       }
     </script>
-
-    <!-- Global CSS -->
     <style>
-        :root {
-            --primary: #0EA5E9;
-            --secondary: #6366F1;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --accent: #F43F5E;
-        }
-
-        @layer base {
-            html { scroll-behavior: smooth; }
-            body { @apply font-inter antialiased; }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        * { box-sizing: border-box; }
+        body { background: #08090D; font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 3px; height: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.2); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.4); }
-        
-        /* Premium Background Effects */
-        .dark body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: 
-                radial-gradient(circle at 0% 0%, rgba(14, 165, 233, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.05) 0%, transparent 40%);
-            pointer-events: none;
-            z-index: -1;
-        }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
 
-        .glass-panel {
-            @apply border transition-all duration-300;
-            background: #FFFFFF;
-            border-color: theme('colors.borderLight');
-        }
-        .dark .glass-panel {
-            background: #0A0D14;
-            border-color: theme('colors.borderDark');
-        }
+        .panel { background: #0D0F16; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; }
+        .panel-sm { background: #0D0F16; border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; }
 
-        .stat-card {
-            @apply relative overflow-hidden rounded-2xl border transition-all duration-300 hover:shadow-lg;
-            background: #FFFFFF;
-            border-color: theme('colors.borderLight');
-        }
-        .dark .stat-card {
-            background: #0A0D14;
-            border-color: theme('colors.borderDark');
-        }
+        .nav-item { display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:6px; font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; transition:all .15s; cursor:pointer; color:rgba(148,163,184,.7); border:1px solid transparent; }
+        .nav-item:hover { background:rgba(255,255,255,.04); color:#e2e8f0; }
+        .nav-item.active { background:rgba(14,165,233,.1); color:#0EA5E9; border-color:rgba(14,165,233,.2); }
 
-        .shimmer { position: relative; overflow: hidden; }
-        .shimmer::after {
-            content: '';
-            position: absolute;
-            top: 0; right: 0; bottom: 0; left: 0;
-            transform: translateX(-100%);
-            background-image: linear-gradient(
-                90deg,
-                rgba(255, 255, 255, 0) 0,
-                rgba(255, 255, 255, 0.05) 20%,
-                rgba(255, 255, 255, 0.1) 60%,
-                rgba(255, 255, 255, 0)
-            );
-            animation: shimmer 3s infinite;
-        }
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .status-dot { width:6px; height:6px; border-radius:50%; display:inline-block; }
+        .status-dot.online { background:#10B981; box-shadow:0 0 6px #10B981; }
+        .status-dot.offline { background:#475569; }
+        .status-dot.warn { background:#F59E0B; box-shadow:0 0 6px #F59E0B; }
+        .status-dot.pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-        .status-dot { @apply w-2 h-2 rounded-full relative; }
-        .status-dot::after {
-            content: '';
-            @apply absolute inset-0 rounded-full animate-ping opacity-75;
-            background: inherit;
-        }
+        .metric-chip { display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px; font-size:9px; font-family:'JetBrains Mono',monospace; font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
+        .chip-green { background:rgba(16,185,129,.1); color:#10B981; border:1px solid rgba(16,185,129,.2); }
+        .chip-blue { background:rgba(14,165,233,.1); color:#0EA5E9; border:1px solid rgba(14,165,233,.2); }
+        .chip-red { background:rgba(244,63,94,.1); color:#F43F5E; border:1px solid rgba(244,63,94,.2); }
+        .chip-amber { background:rgba(245,158,11,.1); color:#F59E0B; border:1px solid rgba(245,158,11,.2); }
+        .chip-slate { background:rgba(100,116,139,.1); color:#64748B; border:1px solid rgba(100,116,139,.2); }
+
+        .tbl-row { border-bottom: 1px solid rgba(255,255,255,0.03); transition:background .1s; }
+        .tbl-row:hover { background:rgba(255,255,255,.02); }
+        .tbl-row:last-child { border-bottom:none; }
+
+        .bar-track { height:3px; background:rgba(255,255,255,.06); border-radius:2px; overflow:hidden; }
+        .bar-fill { height:100%; border-radius:2px; transition:width .6s ease; }
+
+        .env-btn { padding:4px 8px; border-radius:4px; font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; transition:all .15s; cursor:pointer; border:1px solid transparent; }
+        .env-btn-start { background:rgba(16,185,129,.1); color:#10B981; border-color:rgba(16,185,129,.2); }
+        .env-btn-start:hover { background:#10B981; color:#000; }
+        .env-btn-stop { background:rgba(244,63,94,.1); color:#F43F5E; border-color:rgba(244,63,94,.2); }
+        .env-btn-stop:hover { background:#F43F5E; color:#fff; }
+
+        .section-label { font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:rgba(100,116,139,.8); }
+        .page-view { display:none; }
+        .page-view.active { display:flex; flex-direction:column; gap:12px; }
+
+        .btn-action { padding:5px 10px; border-radius:5px; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; transition:all .15s; cursor:pointer; border:1px solid transparent; }
+        .btn-primary { background:rgba(14,165,233,.1); color:#0EA5E9; border-color:rgba(14,165,233,.2); }
+        .btn-primary:hover { background:#0EA5E9; color:#fff; }
+        .btn-ghost { background:rgba(255,255,255,.04); color:#64748B; border-color:rgba(255,255,255,.08); }
+        .btn-ghost:hover { background:rgba(255,255,255,.08); color:#e2e8f0; }
+        .btn-amber { background:rgba(245,158,11,.1); color:#F59E0B; border-color:rgba(245,158,11,.2); }
+        .btn-amber:hover { background:#F59E0B; color:#000; }
+        .btn-danger { background:rgba(244,63,94,.1); color:#F43F5E; border-color:rgba(244,63,94,.2); }
+        .btn-danger:hover { background:#F43F5E; color:#fff; }
     </style>
 </head>
-<body class="bg-mainbgLight dark:bg-mainbgDark text-slate-800 dark:text-slate-200 font-inter min-h-screen transition-colors duration-300">
-    
-    {% include 'components/sidebar.html' %}
+<body class="text-slate-300 h-screen overflow-hidden flex">
 
-    <main class="ml-64 p-8 max-w-[1600px] mx-auto min-h-screen">
-        <div class="flex flex-col gap-8">
-            {% include 'components/header.html' %}
+    <!-- SIDEBAR: Compact 48px icon rail + labels -->
+    <aside class="w-48 h-screen flex-shrink-0 flex flex-col border-r" style="border-color:rgba(255,255,255,.06); background:#0A0C12;">
+        <!-- Logo -->
+        <div class="px-4 py-4 border-b" style="border-color:rgba(255,255,255,.06);">
+            <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#0EA5E9,#6366F1);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <div>
+                    <div style="font-size:12px;font-weight:800;color:#f1f5f9;letter-spacing:.06em;">SINABUNG</div>
+                    <div style="font-size:8px;color:#0EA5E9;font-weight:700;letter-spacing:.15em;">OPS CENTER</div>
+                </div>
+            </div>
+        </div>
 
-            {% include 'components/views/dashboard_view.html' %}
-            {% include 'components/views/control_view.html' %}
-            {% include 'components/views/database_view.html' %}
-            {% include 'components/views/filemanager_view.html' %}
+        <!-- Nav -->
+        <nav class="flex-1 p-2 flex flex-col gap-1 overflow-y-auto">
+            <div class="section-label px-2 py-2">Monitor</div>
+            <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Cluster Status
+            </div>
+            <div class="section-label px-2 py-2 mt-1">Operations</div>
+            <div class="nav-item" id="nav-control" onclick="showPage('control')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/></svg>
+                Server Ctrl
+            </div>
+            <div class="nav-item" id="nav-database" onclick="showPage('database')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                Database
+            </div>
+            <div class="nav-item" id="nav-filemanager" onclick="showPage('filemanager')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                File Mgr
+            </div>
+        </nav>
+
+        <!-- Bottom: System Health + Theme -->
+        <div class="p-2 border-t space-y-2" style="border-color:rgba(255,255,255,.06);">
+            <div class="panel-sm p-2.5">
+                <div class="flex justify-between items-center mb-1.5">
+                    <span class="section-label">System</span>
+                    <span id="sidebar-health" style="font-size:9px;font-weight:700;color:#10B981;font-family:'JetBrains Mono'">OK</span>
+                </div>
+                <div class="bar-track"><div id="sidebar-health-bar" class="bar-fill" style="width:98%;background:#10B981;"></div></div>
+            </div>
+            <button id="theme-toggle" onclick="toggleTheme()" class="w-full nav-item justify-center" style="font-size:9px;">
+                <svg id="theme-icon-dark" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <svg id="theme-icon-light" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="hidden"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+                Theme
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Bar -->
+        <header class="flex items-center justify-between px-4 h-10 flex-shrink-0 border-b" style="border-color:rgba(255,255,255,.06); background:#0A0C12;">
+            <div class="flex items-center gap-3">
+                <span id="page-title" style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#f1f5f9;">CLUSTER STATUS</span>
+                <div class="metric-chip chip-green" id="header-status"><span class="status-dot online pulse"></span>LIVE</div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="header-cpu" class="metric-chip chip-blue">CPU —</span>
+                <span id="header-ram" class="metric-chip chip-slate">RAM —</span>
+                <span id="header-nodes" class="metric-chip chip-green">NODES —</span>
+                <div style="width:1px;height:14px;background:rgba(255,255,255,.08);"></div>
+                <span id="last-update" style="font-size:9px;font-family:'JetBrains Mono';color:#475569;">INITIALIZING</span>
+            </div>
+        </header>
+
+        <!-- Page Container -->
+        <div class="flex-1 overflow-hidden p-3">
+
+            <!-- DASHBOARD VIEW -->
+            <div id="dashboard-view" class="page-view active h-full" style="display:grid;grid-template-columns:200px 1fr;grid-template-rows:auto 1fr;gap:10px;height:100%;">
+
+                <!-- Left col: stats + db -->
+                <div style="grid-column:1;grid-row:1/3;display:flex;flex-direction:column;gap:8px;overflow-y:auto;">
+                    <!-- System KPIs -->
+                    <div class="panel p-3">
+                        <div class="section-label mb-2">System KPIs</div>
+                        <div class="flex flex-col gap-2">
+                            <div class="panel-sm p-2.5">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span style="font-size:9px;color:#64748B;font-weight:600;letter-spacing:.06em;">CPU</span>
+                                    <span id="kpi-cpu" style="font-size:14px;font-family:'JetBrains Mono';font-weight:700;color:#0EA5E9;">—</span>
+                                </div>
+                                <div class="bar-track"><div id="kpi-cpu-bar" class="bar-fill" style="width:0%;background:#0EA5E9;"></div></div>
+                            </div>
+                            <div class="panel-sm p-2.5">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span style="font-size:9px;color:#64748B;font-weight:600;letter-spacing:.06em;">RAM</span>
+                                    <span id="kpi-ram" style="font-size:14px;font-family:'JetBrains Mono';font-weight:700;color:#6366F1;">—</span>
+                                </div>
+                                <div class="bar-track"><div id="kpi-ram-bar" class="bar-fill" style="width:0%;background:#6366F1;"></div></div>
+                                <div id="kpi-ram-detail" style="font-size:8px;color:#475569;margin-top:2px;font-family:'JetBrains Mono';"></div>
+                            </div>
+                            <div class="panel-sm p-2.5 flex justify-between items-center">
+                                <span style="font-size:9px;color:#64748B;font-weight:600;letter-spacing:.06em;">NODES</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span id="kpi-nodes-on" style="font-size:14px;font-family:'JetBrains Mono';font-weight:700;color:#10B981;">—</span>
+                                    <span style="font-size:9px;color:#475569;">/<span id="kpi-nodes-total">—</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts mini -->
+                    <div class="panel p-3">
+                        <div class="section-label mb-2">CPU Trend</div>
+                        <canvas id="cpuChart" height="80"></canvas>
+                    </div>
+                    <div class="panel p-3">
+                        <div class="section-label mb-2">RAM Trend</div>
+                        <canvas id="ramChart" height="80"></canvas>
+                    </div>
+
+                    <!-- DB Stats -->
+                    <div class="panel p-3 flex-1 overflow-hidden flex flex-col">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="section-label">Database</div>
+                            <div class="metric-chip chip-green" style="font-size:8px;"><span class="status-dot online" style="width:4px;height:4px;"></span>ACTIVE</div>
+                        </div>
+                        <div id="db-stats-container" class="flex-1 overflow-y-auto" style="font-size:10px;"></div>
+                    </div>
+                </div>
+
+                <!-- Right: Services Table (full height) -->
+                <div style="grid-column:2;grid-row:1/3;" class="panel flex flex-col overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-2.5 border-b flex-shrink-0" style="border-color:rgba(255,255,255,.06);">
+                        <div class="flex items-center gap-2">
+                            <span style="font-size:11px;font-weight:700;color:#f1f5f9;letter-spacing:.06em;">SERVICE REGISTRY</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div id="svc-online-count" class="metric-chip chip-green">— ONLINE</div>
+                            <div id="svc-offline-count" class="metric-chip chip-red hidden">— OFFLINE</div>
+                        </div>
+                    </div>
+                    <div class="overflow-auto flex-1">
+                        <table id="services-table" class="w-full" style="border-collapse:collapse;min-width:600px;">
+                            <thead style="position:sticky;top:0;background:#0D0F16;z-index:10;border-bottom:1px solid rgba(255,255,255,.06);">
+                                <tr>
+                                    <th class="section-label text-left px-4 py-2">Service</th>
+                                    <th class="section-label text-left px-3 py-2">Port</th>
+                                    <th class="section-label text-left px-3 py-2">PID</th>
+                                    <th class="section-label text-left px-3 py-2">CPU</th>
+                                    <th class="section-label text-left px-3 py-2">RAM</th>
+                                    <th class="section-label text-left px-3 py-2">Health</th>
+                                    <th class="section-label text-right px-4 py-2">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="services-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTROL VIEW -->
+            <div id="control-view" class="page-view h-full" style="grid-template-columns:220px 1fr;gap:10px;height:100%;">
+                {% include 'components/views/control_view.html' %}
+            </div>
+
+            <!-- DATABASE VIEW -->
+            <div id="database-view" class="page-view h-full">
+                {% include 'components/views/database_view.html' %}
+            </div>
+
+            <!-- FILEMANAGER VIEW -->
+            <div id="filemanager-view" class="page-view h-full">
+                {% include 'components/views/filemanager_view.html' %}
+            </div>
+
         </div>
     </main>
 
-    <!-- Modular JavaScript (order matters) -->
     <script src="{{ url_for('static', filename='js/navigation.js') }}"></script>
     <script src="{{ url_for('static', filename='js/terminal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/db_manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
     <script src="{{ url_for('static', filename='js/filemanager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
-
-    <!-- Init -->
     <script>
         showPage('dashboard');
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-icon-dark').classList.toggle('hidden', !isDark);
+            document.getElementById('theme-icon-light').classList.toggle('hidden', isDark);
+        }
+        const isDark = document.documentElement.classList.contains('dark');
+        document.getElementById('theme-icon-dark').classList.toggle('hidden', !isDark);
+        document.getElementById('theme-icon-light').classList.toggle('hidden', isDark);
     </script>
 </body>
 </html>

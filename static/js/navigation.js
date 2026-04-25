@@ -1,25 +1,43 @@
 // ─── Navigation Logic ─────────────────────────────────────────────────────
+const PAGE_TITLES = {
+    dashboard: 'CLUSTER STATUS',
+    control: 'SERVER CONTROL',
+    database: 'DATABASE MGR',
+    filemanager: 'FILE MANAGER'
+};
+
 function showPage(pageId) {
-    document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
-    document.getElementById(pageId + '-view').classList.remove('hidden');
-
-    // Update Sidebar Active State
-    document.querySelectorAll('.nav-item').forEach(n => {
-        n.classList.remove('bg-primary/10', 'text-primary', 'border-primary/20', 'font-semibold');
-        n.classList.add('text-slate-500', 'dark:text-slate-400');
+    // Hide all pages
+    document.querySelectorAll('.page-view').forEach(p => {
+        p.style.display = 'none';
+        p.classList.remove('active');
     });
-    const activeNav = document.getElementById('nav-' + pageId);
-    activeNav.classList.remove('text-slate-500', 'dark:text-slate-400');
-    activeNav.classList.add('bg-primary/10', 'text-primary', 'border-primary/20', 'font-semibold');
 
+    // Show active page
+    const activePage = document.getElementById(pageId + '-view');
+    if (activePage) {
+        activePage.style.display = (pageId === 'dashboard') ? 'grid' : 'block';
+        activePage.classList.add('active');
+    }
+
+    // Nav items
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const activeNav = document.getElementById('nav-' + pageId);
+    if (activeNav) activeNav.classList.add('active');
+
+    // Page title
+    const titleEl = document.getElementById('page-title');
+    if (titleEl) titleEl.innerText = PAGE_TITLES[pageId] || pageId.toUpperCase();
+
+    // Side effects
     if (pageId === 'control') {
-        setTarget('be'); // Default to BE logs and unified target
+        setTarget('be');
     } else if (pageId === 'database') {
         loadDbTables();
         stopLogStream();
     } else if (pageId === 'filemanager') {
         stopLogStream();
-        fmCheckStatus(); // Check if already authenticated
+        fmCheckStatus();
     } else {
         stopLogStream();
     }
