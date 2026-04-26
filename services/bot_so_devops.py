@@ -55,6 +55,9 @@ def handle_so_status(chat_id, args=None):
         else:
             offline.append(f"  ❌ {name[:22]:<22} :{port}")
 
+    cpu = psutil.cpu_percent(interval=None)
+    ram = psutil.virtual_memory()
+
     lines = [
         f"🌋 <b>SINABUNG NODE STATUS ({env_name.upper()})</b>",
         f"⏱ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",

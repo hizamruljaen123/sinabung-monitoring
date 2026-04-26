@@ -149,8 +149,10 @@ def run_telegram_bot():
 
     bot_username = "bot"
     last_id = 0
+    print("[*] Starting Sinabung Bot thread...")
     try:
-        r_me = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getMe", timeout=5)
+        print(f"[*] Fetching bot info with token: {TELEGRAM_BOT_TOKEN[:10]}...")
+        r_me = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getMe", timeout=10)
         if r_me.status_code == 200:
             bot_username = r_me.json().get("result", {}).get("username", "bot")
 
@@ -162,10 +164,12 @@ def run_telegram_bot():
             res = r_upd.json().get("result", [])
             if res:
                 last_id = res[0]["update_id"]
-    except Exception:
+    except Exception as e:
+        print(f"[!] Bot Init Error: {e}")
         pass
 
-    print(f"[*] Sinabung Bot (@{bot_username}) ready. {len([c for c in dir() if c.startswith('handle')])} handlers registered.")
+    handler_count = len([c for c in globals() if c.startswith('handle_so_')])
+    print(f"[*] Sinabung Bot (@{bot_username}) ready. {handler_count} handlers registered.")
 
     while True:
         try:
