@@ -65,6 +65,7 @@ SERVICE_PORTS_MAPPING = {
     "entity_service.py": [5005],
     "ta_service.py": [5007],
     "deep_ta_service.py": [5200],
+    "research_service.py": [5202],
     "sky_service.py": [5002],
     "ais_service.py": [8080],
     "geo_data_service.py": [8091],
@@ -114,6 +115,7 @@ _ALL_BE_PORTS = {
     5007: "TA Engine",
     5008: "Sentiment Engine",
     5200: "Deep TA AI",
+    5202: "Research Service API",
     8000: "Dashboard API",
     8080: "AIS Tracking",
     8091: "Geo Intelligence",
@@ -144,7 +146,7 @@ _ALL_BE_PORTS = {
     9000: "Sinabung Monitoring (Self)",
 }
 
-DEV_ESSENTIAL_PORTS = [5006, 8092, 8200, 8097, 8098, 8093, 8094, 5151]
+DEV_ESSENTIAL_PORTS = [5006, 8092, 8200, 8097, 8098, 8093, 8094, 5151, 5202]
 
 BE_PORTS = {k: v for k, v in _ALL_BE_PORTS.items() if k in DEV_ESSENTIAL_PORTS} if DEV_MODE else _ALL_BE_PORTS
 
