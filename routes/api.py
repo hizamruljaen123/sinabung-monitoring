@@ -60,9 +60,12 @@ def stats():
 
 def get_cwd(target):
     import os
+    base = os.path.join(os.path.dirname(__file__), '..', '..')
     if target == 'be':
-        return os.path.join(os.path.dirname(__file__), '..', '..', 'mahameru-terminal-be')
-    return os.path.join(os.path.dirname(__file__), '..')
+        return os.path.normpath(os.path.join(base, 'mahameru-terminal-be'))
+    if target == 'fe':
+        return os.path.normpath(os.path.join(base, 'mahameru-terminal-fe'))
+    return os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
 
 @api.route('/api/git-pull', methods=['POST'])
 def git_pull():

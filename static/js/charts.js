@@ -122,32 +122,33 @@ async function fetchStats() {
             const ramGb = totalSvcRam / 1024;
             const ramShare = (ramGb / Math.max(data.total_ram_capacity, 1) * 100).toFixed(1);
 
-            const summaryRow = `
-                <tr style="background:rgba(14,165,233,0.1); border-bottom:1px solid rgba(14,165,233,0.3); position:sticky; top:0; z-index:15;">
-                    <td colspan="3" style="padding:10px 14px; font-size:9px; font-weight:800; color:#0EA5E9; text-transform:uppercase; letter-spacing:.12em;">
-                        <div class="flex items-center gap-2">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                            App Resource Summary
+            const summaryEl = document.getElementById('svc-resource-summary');
+            if (summaryEl) {
+                summaryEl.classList.remove('hidden');
+                summaryEl.innerHTML = `
+                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                        <div style="display:flex; align-items:center; gap:20px;">
+                            <div style="display:flex; flex-direction:column;">
+                                <span style="font-size:8px; color:#64748B; font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px;">App CPU Load</span>
+                                <div style="display:flex; align-items:baseline; gap:6px;">
+                                    <span style="font-family:\'JetBrains Mono\'; font-size:13px; font-weight:800; color:#0EA5E9;">${totalSvcCpu.toFixed(1)}%</span>
+                                    <span style="font-size:8px; color:#475569; font-weight:600;">(SYS: ${cpuShare}%)</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; flex-direction:column;">
+                                <span style="font-size:8px; color:#64748B; font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px;">App RAM Usage</span>
+                                <div style="display:flex; align-items:baseline; gap:6px;">
+                                    <span style="font-family:\'JetBrains Mono\'; font-size:13px; font-weight:800; color:#6366F1;">${totalSvcRam.toLocaleString()} MB</span>
+                                    <span style="font-size:8px; color:#475569; font-weight:600;">(SYS: ${ramShare}%)</span>
+                                </div>
+                            </div>
                         </div>
-                    </td>
-                    <td style="padding:10px 10px;">
-                        <div style="display:flex; flex-direction:column; gap:1px;">
-                            <span style="font-family:\'JetBrains Mono\'; font-size:11px; font-weight:800; color:#0EA5E9;">${totalSvcCpu.toFixed(1)}%</span>
-                            <span style="font-size:7px; color:#475569; font-weight:600;">SYS SHARE: ${cpuShare}%</span>
+                        <div style="text-align:right;">
+                            <span class="metric-chip chip-blue" style="font-size:8px; padding:2px 8px;">${sorted.length} ACTIVE CLUSTER NODES</span>
                         </div>
-                    </td>
-                    <td style="padding:10px 10px;">
-                        <div style="display:flex; flex-direction:column; gap:1px;">
-                            <span style="font-family:\'JetBrains Mono\'; font-size:11px; font-weight:800; color:#6366F1;">${totalSvcRam.toLocaleString()} MB</span>
-                            <span style="font-size:7px; color:#475569; font-weight:600;">SYS SHARE: ${ramShare}%</span>
-                        </div>
-                    </td>
-                    <td colspan="2" style="text-align:right; padding-right:14px;">
-                        <div class="flex flex-col items-end gap-1">
-                            <span class="metric-chip chip-blue" style="font-size:8px; padding:2px 8px;">${sorted.length} MANAGED NODES</span>
-                        </div>
-                    </td>
-                </tr>`;
+                    </div>
+                `;
+            }
 
             const rowsHtml = sorted.map(svc => {
                 const cpuC = heatColor(svc.cpu, 100);
@@ -181,7 +182,7 @@ async function fetchStats() {
                 </tr>`;
             }).join('');
 
-            tbody.innerHTML = summaryRow + rowsHtml;
+            tbody.innerHTML = rowsHtml;
         }
 
         // Charts
