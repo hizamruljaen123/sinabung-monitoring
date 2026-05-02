@@ -194,3 +194,21 @@ async function saveEnvConfig() {
 function closeEnvEditor() {
     document.getElementById('env-editor-modal').classList.add('hidden');
 }
+
+async function purgeLogs() {
+    if (!confirm("Are you sure you want to clear all Backend log files? This cannot be undone.")) return;
+    
+    appendLog("SYSTEM", "Requesting log purge...");
+    try {
+        const resp = await fetch('/api/purge-logs', { method: 'POST' });
+        const data = await resp.json();
+        if (data.status === 'success') {
+            appendLog("SYSTEM", `Log purge successful. Cleared ${data.cleared.length} files.`);
+            alert("Logs purged successfully.");
+        } else {
+            appendLog("ERROR", "Purge failed: " + data.message);
+        }
+    } catch (e) {
+        appendLog("ERROR", "Purge error: " + e.message);
+    }
+}
