@@ -93,6 +93,16 @@ SERVICE_PORTS_MAPPING = {
     "military_service.py": [8160],
     "crypto_stream_service.py": [8092],
     "dashboard_service.py": [8000],
+    "bond_service.py": [8145],
+    "volatility_service.py": [8155],
+    "options_service.py": [8165],
+    "capital_flow_service.py": [8175],
+    "corporate_intel_service.py": [8185],
+    "regime_service.py": [8195],
+    "esg_service.py": [8190],
+    "macro_economics_service.py": [8205],
+    "supply_chain_service.py": [8210],
+    "entity_correlation_service.py": [8200],
     "vite_frontend": [5151],
     "sinabung_monitoring": [9000]
 }
@@ -143,6 +153,16 @@ _ALL_BE_PORTS = {
     8140: "Conflict Svc",
     8150: "Gov Facility Svc",
     8160: "Military Svc",
+    8145: "Bond Intelligence",
+    8155: "Volatility Engine",
+    8165: "Options Intel",
+    8175: "Capital Flows",
+    8185: "Corporate Intel",
+    8195: "Regime Intelligence",
+    8190: "ESG Monitoring",
+    8205: "Macro Economics",
+    8210: "Supply Chain Intel",
+    8200: "Entity Correlation",
     9000: "Sinabung Monitoring (Self)",
 }
 

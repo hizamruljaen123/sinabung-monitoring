@@ -1,0 +1,17 @@
+[Unit]
+Description=Mahameru Terminal Backend Launcher
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/var/www/asetpedia/mahameru-terminal-be
+EnvironmentFile=-/var/www/asetpedia/mahameru-terminal-be/.env
+Environment="DEV_MODE=False"
+# Launcher.py manages its own children and health checks
+ExecStart=/usr/bin/python3 launcher.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,26 +1,20 @@
 [Unit]
-Description=Sinabung Monitoring Gunicorn Daemon
+Description=Sinabung Monitoring & DevOps Dashboard
 After=network.target
 
 [Service]
-# Ganti 'ubuntu' dengan username VPS Anda
 User=ubuntu
 Group=www-data
-
-# Pastikan path direktori mengarah ke folder aplikasi sinabung-monitoring
 WorkingDirectory=/var/www/asetpedia/sinabung-monitoring
-
-# Path ke Gunicorn (direkomendasikan memakai virtual environment)
-# Contoh: /var/www/asetpedia/sinabung-monitoring/venv/bin/gunicorn
+EnvironmentFile=-/var/www/asetpedia/sinabung-monitoring/.env
 Environment="PATH=/var/www/asetpedia/sinabung-monitoring/venv/bin"
+Environment="DEV_MODE=False"
 
-# Jalankan Gunicorn: 1 worker dengan banyak threads (cocok untuk API monitoring)
-# App Flask Anda ada di 'app.py' dengan object 'app', bind ke port 9000 atau bebas.
+# Run Gunicorn: 1 worker with 4 threads for high-density API monitoring
 ExecStart=/var/www/asetpedia/sinabung-monitoring/venv/bin/gunicorn --workers 1 --threads 4 --bind 0.0.0.0:9000 app:app
 
-# Restart otomatis jika aplikasi crash
 Restart=always
-RestartSec=3
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
