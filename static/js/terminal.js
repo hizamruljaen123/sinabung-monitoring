@@ -155,3 +155,42 @@ async function injectCommand() {
         appendTerminal(`FATAL: ${e.message}`, 'error');
     }
 }
+
+async function openEnvEditor() {
+    appendTerminal(`>>> OPENING .ENV EDITOR [${currentTarget.toUpperCase()}]`, 'info');
+    try {
+        const data = await fetch(`/api/env-config/get?target=${currentTarget}`).then(r => r.json());
+        if (data.status === 'success') {
+            document.getElementById('env-editor-content').value = data.content;
+            document.getElementById('env-editor-modal').classList.remove('hidden');
+        } else {
+            appendTerminal(`✗ ERROR: ${data.message}`, 'error');
+        }
+    } catch (e) {
+        appendTerminal(`FATAL: ${e.message}`, 'error');
+    }
+}
+
+async function saveEnvConfig() {
+    const content = document.getElementById('env-editor-content').value;
+    try {
+        const response = await fetch('/api/env-config/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target: currentTarget, content })
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+            appendTerminal(`✓ ${data.message}`, 'success');
+            closeEnvEditor();
+        } else {
+            alert(`Error: ${data.message}`);
+        }
+    } catch (e) {
+        alert(`Fatal: ${e.message}`);
+    }
+}
+
+function closeEnvEditor() {
+    document.getElementById('env-editor-modal').classList.add('hidden');
+}
