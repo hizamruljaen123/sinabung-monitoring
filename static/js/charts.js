@@ -143,6 +143,24 @@ async function fetchStats() {
                     <td style="padding:5px 14px;text-align:right;">${statusHtml}</td>
                 </tr>`;
             }).join('');
+
+            // Add Summary Row
+            const totalCpu = sorted.reduce((sum, s) => sum + (s.cpu || 0), 0);
+            const totalRam = sorted.reduce((sum, s) => sum + (s.ram || 0), 0);
+            const summaryRow = `
+                <tr style="background:rgba(14,165,233,0.05); border-top:1px solid rgba(14,165,233,0.2); position:sticky; bottom:0; z-index:5;">
+                    <td colspan="3" style="padding:8px 14px; font-size:9px; font-weight:800; color:#0EA5E9; text-transform:uppercase; letter-spacing:.1em;">Total App Resource Usage</td>
+                    <td style="padding:8px 10px;">
+                        <span style="font-family:\'JetBrains Mono\'; font-size:10px; font-weight:700; color:#0EA5E9;">${totalCpu.toFixed(1)}%</span>
+                    </td>
+                    <td style="padding:8px 10px;">
+                        <span style="font-family:\'JetBrains Mono\'; font-size:10px; font-weight:700; color:#6366F1;">${totalRam.toLocaleString()} MB</span>
+                    </td>
+                    <td colspan="2" style="text-align:right; padding-right:14px;">
+                        <span class="metric-chip chip-blue" style="font-size:8px;">${sorted.length} ACTIVE SERVICES</span>
+                    </td>
+                </tr>`;
+            tbody.innerHTML += summaryRow;
         }
 
         // Charts
