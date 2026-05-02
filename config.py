@@ -103,6 +103,7 @@ SERVICE_PORTS_MAPPING = {
     "macro_economics_service.py": [8205],
     "supply_chain_service.py": [8210],
     "entity_correlation_service.py": [8200],
+    "copilot_gateway.py": [8500],
     "vite_frontend": [5151],
     "sinabung_monitoring": [9000]
 }
@@ -163,10 +164,11 @@ _ALL_BE_PORTS = {
     8205: "Macro Economics",
     8210: "Supply Chain Intel",
     8200: "Entity Correlation",
+    8500: "Mahameru Copilot AI",
     9000: "Sinabung Monitoring (Self)",
 }
 
-DEV_ESSENTIAL_PORTS = [5006, 8092, 8200, 8097, 8098, 8093, 8094, 5151, 5202]
+DEV_ESSENTIAL_PORTS = [5006, 8092, 8200, 8097, 8098, 8093, 8094, 5151, 5202, 8500]
 
 BE_PORTS = {k: v for k, v in _ALL_BE_PORTS.items() if k in DEV_ESSENTIAL_PORTS} if DEV_MODE else _ALL_BE_PORTS
 
