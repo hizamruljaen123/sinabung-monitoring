@@ -126,3 +126,32 @@ function clearTerminal() {
     const t = document.getElementById('terminal-content');
     if (t) t.innerHTML = '<span style="color:#0EA5E9;opacity:.5">BUFFER_CLEARED // READY</span>';
 }
+
+async function injectCommand() {
+    const input = document.getElementById('terminal-input');
+    if (!input) return;
+    const command = input.value.trim();
+    if (!command) return;
+
+    appendTerminal(`$ ${command}`, 'info');
+    input.value = '';
+
+    try {
+        const response = await fetch('/api/terminal/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target: currentTarget, command })
+        });
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            if (data.stdout) appendTerminal(data.stdout, 'info');
+            if (data.stderr) appendTerminal(data.stderr, 'error');
+            if (!data.stdout && !data.stderr) appendTerminal('✓ Command executed (no output)', 'success');
+        } else {
+            appendTerminal(`✗ ERROR: ${data.message}`, 'error');
+        }
+    } catch (e) {
+        appendTerminal(`FATAL: ${e.message}`, 'error');
+    }
+}

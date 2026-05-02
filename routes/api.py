@@ -1,5 +1,6 @@
 import subprocess
 import psutil
+import os
 from datetime import datetime
 from flask import Blueprint, jsonify, render_template, request
 from config import BE_PORTS, FE_PORTS, DEV_MODE
@@ -108,29 +109,130 @@ def build():
     except subprocess.CalledProcessError as e:
         return jsonify({"status": "error", "output": e.stderr}), 500
 
-@api.route('/api/pm2-action/<action>/<int:app_id>', methods=['POST'])
+@api.route('/api/terminal/run', methods=['POST'])
+def terminal_run():
+    """Execute arbitrary shell commands in a target directory."""
+    data = request.json
+    target = data.get('target', 'be')
+    command = data.get('command', '').strip()
+    
+    if not command:
+        return jsonify({"status": "error", "message": "No command provided"}), 400
+        
+    cwd = get_cwd(target)
+    
+    try:
+        # Run command with shell=True to support pipes, etc.
+        result = subprocess.run(
+            command,
+            cwd=cwd,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+        
+        return jsonify({
+            "status": "success",
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "exit_code": result.returncode
+        })
+    except subprocess.TimeoutExpired:
+        return jsonify({"status": "error", "message": "Command timed out after 120s"}), 504
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@api.route('/api/env-config/get', methods=['GET'])
+def get_env_config():
+    """Read the .env file for a target."""
+    target = request.args.get('target', 'be')
+    cwd = get_cwd(target)
+    env_path = os.path.join(cwd, '.env')
+    
+    if not os.path.exists(env_path):
+        return jsonify({"status": "error", "message": ".env file not found"}), 404
+        
+    try:
+        with open(env_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return jsonify({"status": "success", "content": content})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@api.route('/api/env-config/save', methods=['POST'])
+def save_env_config():
+    """Overwrite the .env file for a target."""
+    data = request.json
+    target = data.get('target', 'be')
+    content = data.get('content', '')
+    
+    cwd = get_cwd(target)
+    env_path = os.path.join(cwd, '.env')
+    
+    try:
+        # Backup existing .env before overwrite
+        if os.path.exists(env_path):
+            backup_path = f"{env_path}.bak"
+            import shutil
+            shutil.copy2(env_path, backup_path)
+            
+        with open(env_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        return jsonify({"status": "success", "message": ".env saved and backed up."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@api.route('/api/pm2-action/<action>/<app_id>', methods=['POST'])
 def pm2_action(action, app_id):
     if action not in ['start', 'stop', 'restart', 'delete', 'reload']:
         return jsonify({"status": "error", "message": "Invalid action"}), 400
+    
+    # Check for self-reload/restart
+    current_pm2_id = os.environ.get('pm_id')
+    is_self = current_pm2_id and str(app_id) == str(current_pm2_id)
+    
+    # Use single string commands for shell=True on Windows
+    cmd = f"pm2 {action} {app_id}"
+    npx_cmd = f"npx pm2 {action} {app_id}"
+    
     try:
-        result = subprocess.run(
-            ['npx', 'pm2', action, str(app_id)],
-            capture_output=True, text=True, check=True, shell=True
-        )
+        if is_self and action in ['reload', 'restart']:
+            # Run in background to allow response to finish
+            subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return jsonify({"status": "success", "message": f"Self-{action} initiated. System will restart."})
+            
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=True)
         return jsonify({"status": "success", "output": result.stdout})
-    except subprocess.CalledProcessError as e:
-        return jsonify({"status": "error", "output": e.stderr}), 500
+    except Exception:
+        try:
+            if is_self and action in ['reload', 'restart']:
+                subprocess.Popen(npx_cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                return jsonify({"status": "success", "message": f"Self-{action} initiated via npx."})
+            result = subprocess.run(npx_cmd, capture_output=True, text=True, check=True, shell=True)
+            return jsonify({"status": "success", "output": result.stdout})
+        except subprocess.CalledProcessError as e:
+            return jsonify({
+                "status": "error", 
+                "message": "PM2 Command Failed",
+                "output": e.stderr or e.stdout
+            }), 500
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
 
-@api.route('/api/clear-logs/<int:app_id>', methods=['POST'])
+@api.route('/api/clear-logs/<app_id>', methods=['POST'])
 def clear_logs(app_id):
     try:
-        result = subprocess.run(
-            ['npx', 'pm2', 'flush', str(app_id)],
-            capture_output=True, text=True, check=True, shell=True
-        )
-        return jsonify({"status": "success", "output": "Logs flushed for ID " + str(app_id)})
-    except subprocess.CalledProcessError as e:
-        return jsonify({"status": "error", "output": e.stderr}), 500
+        cmd = f"pm2 flush {app_id}"
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=True)
+        return jsonify({"status": "success", "output": f"Logs flushed for {app_id}"})
+    except Exception:
+        try:
+            npx_cmd = f"npx pm2 flush {app_id}"
+            result = subprocess.run(npx_cmd, capture_output=True, text=True, check=True, shell=True)
+            return jsonify({"status": "success", "output": f"Logs flushed for {app_id} via npx"})
+        except subprocess.CalledProcessError as e:
+            return jsonify({"status": "error", "output": e.stderr}), 500
 
 
 # ─── System Maintenance ──────────────────────────────────────────────────────
@@ -165,16 +267,9 @@ def env_stop(env_name):
 
 # ─── PM2 Operations ─────────────────────────────────────────────────────────
 
-@api.route('/api/pm2-reload/<int:app_id>', methods=['POST'])
+@api.route('/api/pm2-reload/<app_id>', methods=['POST'])
 def pm2_reload(app_id):
-    try:
-        result = subprocess.run(
-            ['npx', 'pm2', 'reload', str(app_id)],
-            capture_output=True, text=True, check=True, shell=True
-        )
-        return jsonify({"status": "success", "output": result.stdout})
-    except subprocess.CalledProcessError as e:
-        return jsonify({"status": "error", "output": e.stderr}), 500
+    return pm2_action('reload', app_id)
 
 
 @api.route('/api/logs/<int:port>')
