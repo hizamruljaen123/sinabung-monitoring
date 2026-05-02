@@ -163,12 +163,13 @@ _ALL_BE_PORTS = {
     8190: "ESG Monitoring",
     8205: "Macro Economics",
     8210: "Supply Chain Intel",
+    8170: "Bot Telegram (MAHAMERU)",
     8200: "Entity Correlation",
     8500: "Mahameru Copilot AI",
     9000: "Sinabung Monitoring (Self)",
 }
 
-DEV_ESSENTIAL_PORTS = [5006, 8092, 8200, 8097, 8098, 8093, 8094, 5151, 5202, 8500]
+DEV_ESSENTIAL_PORTS = [5006, 8092, 8200, 8097, 8098, 8093, 8094, 5151, 5202, 8170, 8500]
 
 BE_PORTS = {k: v for k, v in _ALL_BE_PORTS.items() if k in DEV_ESSENTIAL_PORTS} if DEV_MODE else _ALL_BE_PORTS
 
