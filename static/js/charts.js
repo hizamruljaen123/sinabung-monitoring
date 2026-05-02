@@ -112,7 +112,44 @@ async function fetchStats() {
                 if (a.status !== b.status) return a.status === 'ONLINE' ? -1 : 1;
                 return b.ram - a.ram;
             });
-            tbody.innerHTML = sorted.map(svc => {
+
+            // Calculate Totals
+            const totalSvcCpu = sorted.reduce((sum, s) => sum + (s.cpu || 0), 0);
+            const totalSvcRam = sorted.reduce((sum, s) => sum + (s.ram || 0), 0);
+            
+            // Calculate percentages of total system
+            const cpuShare = (totalSvcCpu / Math.max(data.total_cpu, 1) * 100).toFixed(1);
+            const ramGb = totalSvcRam / 1024;
+            const ramShare = (ramGb / Math.max(data.total_ram_capacity, 1) * 100).toFixed(1);
+
+            const summaryRow = `
+                <tr style="background:rgba(14,165,233,0.1); border-bottom:1px solid rgba(14,165,233,0.3); position:sticky; top:0; z-index:15;">
+                    <td colspan="3" style="padding:10px 14px; font-size:9px; font-weight:800; color:#0EA5E9; text-transform:uppercase; letter-spacing:.12em;">
+                        <div class="flex items-center gap-2">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            App Resource Summary
+                        </div>
+                    </td>
+                    <td style="padding:10px 10px;">
+                        <div style="display:flex; flex-direction:column; gap:1px;">
+                            <span style="font-family:\'JetBrains Mono\'; font-size:11px; font-weight:800; color:#0EA5E9;">${totalSvcCpu.toFixed(1)}%</span>
+                            <span style="font-size:7px; color:#475569; font-weight:600;">SYS SHARE: ${cpuShare}%</span>
+                        </div>
+                    </td>
+                    <td style="padding:10px 10px;">
+                        <div style="display:flex; flex-direction:column; gap:1px;">
+                            <span style="font-family:\'JetBrains Mono\'; font-size:11px; font-weight:800; color:#6366F1;">${totalSvcRam.toLocaleString()} MB</span>
+                            <span style="font-size:7px; color:#475569; font-weight:600;">SYS SHARE: ${ramShare}%</span>
+                        </div>
+                    </td>
+                    <td colspan="2" style="text-align:right; padding-right:14px;">
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="metric-chip chip-blue" style="font-size:8px; padding:2px 8px;">${sorted.length} MANAGED NODES</span>
+                        </div>
+                    </td>
+                </tr>`;
+
+            const rowsHtml = sorted.map(svc => {
                 const cpuC = heatColor(svc.cpu, 100);
                 const ramC = heatColor(svc.ram, 2048);
                 const cpuW = Math.min(svc.cpu, 100);
@@ -144,23 +181,7 @@ async function fetchStats() {
                 </tr>`;
             }).join('');
 
-            // Add Summary Row
-            const totalCpu = sorted.reduce((sum, s) => sum + (s.cpu || 0), 0);
-            const totalRam = sorted.reduce((sum, s) => sum + (s.ram || 0), 0);
-            const summaryRow = `
-                <tr style="background:rgba(14,165,233,0.05); border-top:1px solid rgba(14,165,233,0.2); position:sticky; bottom:0; z-index:5;">
-                    <td colspan="3" style="padding:8px 14px; font-size:9px; font-weight:800; color:#0EA5E9; text-transform:uppercase; letter-spacing:.1em;">Total App Resource Usage</td>
-                    <td style="padding:8px 10px;">
-                        <span style="font-family:\'JetBrains Mono\'; font-size:10px; font-weight:700; color:#0EA5E9;">${totalCpu.toFixed(1)}%</span>
-                    </td>
-                    <td style="padding:8px 10px;">
-                        <span style="font-family:\'JetBrains Mono\'; font-size:10px; font-weight:700; color:#6366F1;">${totalRam.toLocaleString()} MB</span>
-                    </td>
-                    <td colspan="2" style="text-align:right; padding-right:14px;">
-                        <span class="metric-chip chip-blue" style="font-size:8px;">${sorted.length} ACTIVE SERVICES</span>
-                    </td>
-                </tr>`;
-            tbody.innerHTML += summaryRow;
+            tbody.innerHTML = summaryRow + rowsHtml;
         }
 
         // Charts
