@@ -63,5 +63,50 @@ def clear_today_cache(chat_id):
     except Exception as e:
         print(f"[SQLite] Clear error: {e}")
 
+def get_all_messages(chat_id):
+    """Retrieve all message IDs for a specific chat, regardless of date."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT message_id FROM sent_messages WHERE chat_id = ?',
+            (str(chat_id),)
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [r[0] for r in rows]
+    except Exception as e:
+        print(f"[SQLite] Get all error: {e}")
+        return []
+
+def clear_all_cache(chat_id):
+    """Remove all records for a specific chat."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM sent_messages WHERE chat_id = ?', (str(chat_id),))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[SQLite] Clear all error: {e}")
+
+def get_full_history(limit=50):
+    """Get recent activity for the dashboard."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT id, chat_id, message_id, sent_at, sent_date 
+            FROM sent_messages 
+            ORDER BY sent_at DESC 
+            LIMIT ?
+        ''', (limit,))
+        rows = cursor.fetchall()
+        conn.close()
+        return rows
+    except Exception as e:
+        print(f"[SQLite] History error: {e}")
+        return []
+
 # Initialize on import
 init_db()

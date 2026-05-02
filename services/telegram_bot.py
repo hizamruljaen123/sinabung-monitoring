@@ -35,6 +35,28 @@ def handle_so_clear_history(chat_id):
     clear_today_cache(chat_id)
     send_message(chat_id, f"🧹 <b>CLEANUP COMPLETE</b>\nRemoved {count} messages from today's history.", auto_delete_seconds=10)
 
+def handle_clear_all(chat_id):
+    """Batch delete ALL messages tracked in SQLite for this chat."""
+    from services.bot_cache import get_all_messages, clear_all_cache
+    count = 0
+    mids = get_all_messages(chat_id)
+    
+    # Send a wait message
+    wait_msg = send_message(chat_id, f"⏳ <b>CLEANING FULL HISTORY...</b>\nTargeting {len(mids)} messages.")
+    
+    for mid in mids:
+        try:
+            requests.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteMessage",
+                json={"chat_id": chat_id, "message_id": mid},
+                timeout=5
+            )
+            count += 1
+        except: pass
+    
+    clear_all_cache(chat_id)
+    send_message(chat_id, f"🔥 <b>NUKED!</b>\nSuccessfully wiped {count} messages from bot history.", auto_delete_seconds=15)
+
 # ─── Import DevOps command handlers ───────────────────────────────────────────
 from services.bot_so_devops import (
     handle_so_status, handle_so_cpu, handle_so_ram, handle_so_disk,
@@ -69,6 +91,7 @@ HELP_TEXT = """
 
 <b>── UTILITIES ──</b>
 /clear_message     Alias for session cleanup
+/clear_all         🔥 Wipe ALL Bot Messages in this chat
 /so_get_id         Get current Telegram Chat ID
 /help              Display this guide
 """
@@ -130,6 +153,9 @@ def _dispatch(cmd: str, args: list, chat_id: int):
 
     elif cmd in ("/so_clear_history", "/clear_message"):
         handle_so_clear_history(chat_id)
+
+    elif cmd == "/clear_all":
+        handle_clear_all(chat_id)
 
     else:
         # Unknown command from this bot prefix

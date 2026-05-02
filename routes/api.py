@@ -245,6 +245,23 @@ def disk_usage():
     stats = get_disk_usage()
     return jsonify(stats)
 
+@api.route('/api/bot-history')
+def bot_history():
+    """Retrieve recent bot activity logs."""
+    from services.bot_cache import get_full_history
+    history = get_full_history(limit=100)
+    
+    formatted = []
+    for row in history:
+        formatted.append({
+            "id": row[0],
+            "chat_id": row[1],
+            "message_id": row[2],
+            "sent_at": row[3],
+            "sent_date": row[4]
+        })
+    return jsonify(formatted)
+
 @api.route('/api/purge-logs', methods=['POST'])
 def purge_logs_action():
     res = purge_all_logs()

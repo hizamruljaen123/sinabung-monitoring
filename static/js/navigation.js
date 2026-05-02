@@ -3,7 +3,8 @@ const PAGE_TITLES = {
     dashboard: 'CLUSTER STATUS',
     control: 'SERVER CONTROL',
     database: 'DATABASE MGR',
-    filemanager: 'FILE MANAGER'
+    filemanager: 'FILE MANAGER',
+    bot: 'BOT ACTIVITY LOGS'
 };
 
 function showPage(pageId) {
@@ -38,7 +39,32 @@ function showPage(pageId) {
     } else if (pageId === 'filemanager') {
         stopLogStream();
         fmCheckStatus();
+    } else if (pageId === 'bot') {
+        stopLogStream();
+        refreshBotHistory();
     } else {
         stopLogStream();
+    }
+}
+
+async function refreshBotHistory() {
+    const tbody = document.getElementById('bot-history-tbody');
+    if (!tbody) return;
+    
+    try {
+        const data = await fetch('/api/bot-history').then(r => r.json());
+        tbody.innerHTML = data.map(log => `
+            <tr class="tbl-row">
+                <td style="padding:6px 14px; font-family:'JetBrains Mono'; font-size:9px; color:#64748B;">#${log.id}</td>
+                <td style="padding:6px 10px; font-family:'JetBrains Mono'; font-size:9px; color:#0EA5E9;">${log.chat_id}</td>
+                <td style="padding:6px 10px; font-family:'JetBrains Mono'; font-size:9px; color:#94a3b8;">${log.message_id}</td>
+                <td style="padding:6px 10px; font-family:'JetBrains Mono'; font-size:9px; color:#475569;">${log.sent_at}</td>
+                <td style="padding:6px 14px; text-align:right;">
+                    <span class="metric-chip chip-green" style="font-size:7px;">DELIVERED</span>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        console.error('Bot history fetch error:', e);
     }
 }

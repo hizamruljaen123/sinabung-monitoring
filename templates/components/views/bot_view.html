@@ -1,0 +1,56 @@
+<!-- Bot Activity View -->
+<div id="bot-view" class="page-view hidden h-full flex flex-col gap-[10px] overflow-hidden">
+    
+    <!-- Top Summary -->
+    <div class="panel p-4 flex items-center justify-between bg-primary/5 border-primary/20">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div>
+                <h3 style="font-size:14px; font-weight:700; color:#f1f5f9; margin-bottom:2px;">Telegram Bot Orchestrator</h3>
+                <p style="font-size:10px; color:#64748B;">Monitoring real-time interactions and message history for Sinabung Bot.</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="refreshBotHistory()" class="btn-action btn-ghost px-4">REFRESH LOGS</button>
+            <div class="metric-chip chip-blue" style="padding:4px 10px;">POLLING ACTIVE</div>
+        </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="panel flex-1 flex flex-col overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b" style="border-color:rgba(255,255,255,.06);">
+            <span class="section-label">Bot Message History (Last 100)</span>
+            <span style="font-size:9px; color:#475569; font-family:'JetBrains Mono';">DB: bot_history.db</span>
+        </div>
+        <div class="flex-1 overflow-auto custom-scrollbar">
+            <table class="w-full text-left" style="border-collapse:collapse;">
+                <thead style="position:sticky; top:0; background:#0D0F16; z-index:10; border-bottom:1px solid rgba(255,255,255,.06);">
+                    <tr>
+                        <th class="section-label px-4 py-2">Entry ID</th>
+                        <th class="section-label px-2 py-2">Chat ID</th>
+                        <th class="section-label px-2 py-2">Msg ID</th>
+                        <th class="section-label px-2 py-2">Sent At</th>
+                        <th class="section-label text-right px-4 py-2">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="bot-history-tbody">
+                    <!-- Dynamic rows -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Instructions Panel -->
+    <div class="panel p-4 bg-[#060810]/50 border-dashed border-slate-800">
+        <div class="flex gap-3">
+            <div class="text-amber-500 mt-0.5">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div style="font-size:11px; color:#94a3b8; line-height:1.6;">
+                <b style="color:#e2e8f0;">Remote Cleanup:</b> Use the command <code>/clear_all</code> in your Telegram group to delete all historical bot messages tracked in this database. This view will refresh automatically to reflect deletions.
+            </div>
+        </div>
+    </div>
+</div>
