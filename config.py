@@ -3,12 +3,22 @@ import psutil
 
 try:
     from dotenv import load_dotenv
-    parent_env_path = os.path.join(os.path.dirname(__file__), '..', 'mahameru-terminal-be', '.env')
-    load_dotenv(parent_env_path)
-    local_env_path = os.path.join(os.path.dirname(__file__), '.env')
-    load_dotenv(local_env_path, override=True)
+    base_dir = os.path.dirname(__file__)
+    
+    # Load Backend envs
+    be_env = os.path.join(base_dir, '..', 'mahameru-terminal-be', '.env')
+    be_env_local = os.path.join(base_dir, '..', 'mahameru-terminal-be', '.env.local')
+    load_dotenv(be_env)
+    load_dotenv(be_env_local, override=True)
+    
+    # Load Monitoring local envs
+    mon_env = os.path.join(base_dir, '.env')
+    mon_env_local = os.path.join(base_dir, '.env.local')
+    load_dotenv(mon_env)
+    load_dotenv(mon_env_local, override=True)
 except ImportError:
     pass
+
 
 DEV_MODE = os.getenv("DEV_MODE", "True").lower() == "true"
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")

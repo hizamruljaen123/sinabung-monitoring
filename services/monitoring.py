@@ -227,3 +227,96 @@ def stop_environment(env_name):
         return {"status": "success", "message": f"{env_name.upper()} stopped", "killed_count": killed_count}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+# ─── Local Service Management (Manual Toggles) ────────────────────────────────
+
+def get_local_services_status():
+    """Return status of all defined local microservices."""
+    from config import SERVICE_PORTS_MAPPING
+    import os
+    
+    results = []
+    for service_file, ports in SERVICE_PORTS_MAPPING.items():
+        # Check first port as status indicator
+        port = ports[0]
+        name = service_file.replace('_service.py', '').replace('.py', '').upper()
+        info = get_process_info(port, name)
+        
+        results.append({
+            "id": service_file,
+            "name": name,
+            "port": port,
+            "status": info["status"],
+            "pid": info["pid"],
+            "cpu": info["cpu"],
+            "ram": info["ram"],
+            "is_node": service_file == "vite_frontend"
+        })
+    return results
+
+def control_local_service(service_id, action):
+    """Start or stop a specific local service."""
+    import subprocess
+    import sys
+    import os
+    from config import SERVICE_PORTS_MAPPING, ENVIRONMENTS
+    
+    if service_id not in SERVICE_PORTS_MAPPING:
+        return {"status": "error", "message": f"Service {service_id} not defined"}
+    
+    ports = SERVICE_PORTS_MAPPING[service_id]
+    
+    if action == "stop":
+        import psutil
+        killed = 0
+        for port in ports:
+            for conn in psutil.net_connections(kind='inet'):
+                if conn.laddr.port == port and conn.status == 'LISTEN' and conn.pid:
+                    try:
+                        p = psutil.Process(conn.pid)
+                        for child in p.children(recursive=True): child.kill()
+                        p.kill()
+                        killed += 1
+                    except: pass
+        return {"status": "success", "message": f"Stopped {service_id}", "killed": killed}
+    
+    elif action == "start":
+        be_path = ENVIRONMENTS["main"]["be_path"]
+        fe_path = ENVIRONMENTS["main"]["fe_path"]
+        
+        try:
+            if service_id == "vite_frontend":
+                # Start frontend
+                cmd = "npm run local"
+                subprocess.Popen(cmd, cwd=fe_path, shell=True, 
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                 start_new_session=True)
+            else:
+                # Start backend python service
+                # We should use launcher_local's env logic if possible, 
+                # but here we just start the single service.
+                env = os.environ.copy()
+                env["LOCAL_DEV"] = "True"
+                
+                # Check for .env.local
+                env_local = os.path.join(be_path, ".env.local")
+                if os.path.exists(env_local):
+                    with open(env_local, 'r') as f:
+                        for line in f:
+                            if '=' in line and not line.strip().startswith('#'):
+                                k, v = line.strip().split('=', 1)
+                                env[k.strip()] = v.strip()
+
+                cmd = [sys.executable, os.path.join(be_path, service_id)]
+                # Add default ports if needed? No, services usually take from env or defaults.
+                
+                subprocess.Popen(cmd, cwd=be_path, env=env,
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                 start_new_session=True)
+            
+            return {"status": "success", "message": f"Started {service_id}"}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+    
+    return {"status": "error", "message": "Invalid action"}
+

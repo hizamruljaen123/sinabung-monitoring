@@ -51,6 +51,13 @@ def start_background_threads():
         return
     _threads_initialized = True
     
+    # Check for LOCAL_DEV mode
+    IS_LOCAL = os.environ.get('LOCAL_DEV', 'False').lower() == 'true'
+    
+    if IS_LOCAL:
+        print("[!] LOCAL MODE DETECTED — Skipping Telegram Bot & Alerts to prevent dev spam.")
+        return
+
     print("[*] Initializing background threads (Telegram Bot & Alert Loop)...")
     
     # 1. Telegram Bot Polling
@@ -67,5 +74,14 @@ if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
 
 if __name__ == '__main__':
     # When running directly: python app.py
-    print("[*] Sinabung Monitoring started — reloader DISABLED to prevent duplicate alerts.")
+    IS_LOCAL = os.environ.get('LOCAL_DEV', 'False').lower() == 'true'
+    if IS_LOCAL:
+        print("=====================================================")
+        print("  SINABUNG MONITORING — RUNNING IN LOCAL MODE")
+        print("  (Background alerts & bots are DISABLED)")
+        print("=====================================================")
+    else:
+        print("[*] Sinabung Monitoring started — reloader DISABLED to prevent duplicate alerts.")
+    
     app.run(host="0.0.0.0", port=9000, debug=True, use_reloader=False)
+

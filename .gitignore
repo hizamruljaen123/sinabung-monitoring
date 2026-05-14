@@ -1,9 +1,9 @@
 .env
+.env.local
 __pycache__/
-*.pyc
-*.pyo
+*.db
+*.log
 venv/
 env/
 .idea/
 .vscode/
-bot_history.db

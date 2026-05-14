@@ -450,3 +450,21 @@ def delete_record(table_name, id_col, id_val):
         return jsonify({"status": "error", "message": str(e)}), 400
     finally:
         conn.close()
+
+
+# ─── Local Development Hub ──────────────────────────────────────────────────
+
+@api.route('/api/local/services')
+def local_services():
+    """Get status of all local microservices."""
+    from services.monitoring import get_local_services_status
+    services = get_local_services_status()
+    return jsonify(services)
+
+@api.route('/api/local/control/<action>/<path:service_id>', methods=['POST'])
+def local_service_control(action, service_id):
+    """Toggle a local service on or off."""
+    from services.monitoring import control_local_service
+    res = control_local_service(service_id, action)
+    return jsonify(res)
+

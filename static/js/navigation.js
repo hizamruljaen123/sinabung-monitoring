@@ -4,7 +4,8 @@ const PAGE_TITLES = {
     control: 'SERVER CONTROL',
     database: 'DATABASE MGR',
     filemanager: 'FILE MANAGER',
-    bot: 'BOT ACTIVITY LOGS'
+    bot: 'BOT ACTIVITY LOGS',
+    local: 'LOCAL HUB'
 };
 
 function showPage(pageId) {
@@ -42,6 +43,9 @@ function showPage(pageId) {
     } else if (pageId === 'bot') {
         stopLogStream();
         refreshBotHistory();
+    } else if (pageId === 'local') {
+        stopLogStream();
+        refreshLocalServices();
     } else {
         stopLogStream();
     }

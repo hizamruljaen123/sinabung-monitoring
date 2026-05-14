@@ -1,0 +1,73 @@
+<div id="view-local" class="page-view">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h2 class="text-xl font-bold text-white tracking-tight">LOCAL DEVELOPMENT HUB</h2>
+            <p class="text-[10px] text-slate-500 font-medium tracking-wider uppercase">Microservice Control Center</p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="refreshLocalServices()" class="btn-action btn-ghost flex items-center gap-2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Refresh Status
+            </button>
+        </div>
+    </div>
+
+    <!-- Service Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="local-services-grid">
+        <!-- JS will populate this -->
+        <div class="col-span-full py-20 flex flex-col items-center justify-center opacity-40">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="animate-spin mb-4"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            <span class="text-xs font-mono">SCANNING LOCAL SERVICES...</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .service-card {
+        background: #0D0F16;
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 10px;
+        padding: 12px;
+        transition: all 0.2s ease;
+    }
+    .service-card:hover {
+        border-color: rgba(14,165,233,0.3);
+        background: rgba(14,165,233,0.02);
+        transform: translateY(-2px);
+    }
+    .service-card.online {
+        border-left: 3px solid #10B981;
+    }
+    .service-card.offline {
+        border-left: 3px solid #475569;
+    }
+
+    /* Switch Style */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 34px;
+        height: 18px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(255,255,255,0.08);
+        transition: .3s;
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 12px; width: 12px;
+        left: 2px; bottom: 2px;
+        background-color: #64748B;
+        transition: .3s;
+        border-radius: 50%;
+    }
+    input:checked + .slider { background-color: rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.4); }
+    input:checked + .slider:before { transform: translateX(16px); background-color: #10B981; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+</style>
